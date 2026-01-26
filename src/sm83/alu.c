@@ -1,11 +1,7 @@
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-// r8
-// r16
-// n8
-// n16
 
 char *registers = NULL;
 
@@ -18,7 +14,7 @@ int execute_8_bit_arithmetic_operation(int instruction) {
   char *accumulator = registers;
   bool should_carry = false;
   int carry, operand, base_register_index = 2, register_index = low & 0x7;
-  unsigned char result = *accumulator;
+  uint8_t result = *accumulator;
 
   int cpu_cycles = 1;
 
@@ -79,7 +75,7 @@ int execute_8_bit_logical_operation(int instruction) {
 
   char *accumulator = registers;
   int operand, base_register_index = 2, register_index = low & 0x7;
-  unsigned char result = *accumulator;
+  uint8_t result = *accumulator;
 
   int cpu_cycles = 1;
 
