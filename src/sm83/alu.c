@@ -13,7 +13,7 @@ int execute_8_bit_arithmetic_operation(int instruction) {
 
   char *accumulator = registers;
   bool should_carry = false;
-  int carry, operand, base_register_index = 2, register_index = low & 0x7;
+  int carry, operand, base_register_index = 2;
   uint8_t result = *accumulator;
 
   int cpu_cycles = 1;
@@ -26,19 +26,26 @@ int execute_8_bit_arithmetic_operation(int instruction) {
     carry = 1;
   }
 
-  if (register_index < 6) {
-    operand = registers[base_register_index + register_index];
-  } else if (register_index == 6) {
-    // TODO fix the [HL] value reference
-    operand = registers[register_index] * 0x100 + registers[register_index + 1];
+  if (high < 0xc) {
+    int register_index = low & 0x7;
+    if (register_index < 6) {
+      operand = registers[base_register_index + register_index];
+    } else if (register_index == 6) {
+      // TODO fix the [HL] value reference
+      operand =
+          registers[register_index] * 0x100 + registers[register_index + 1];
+      cpu_cycles = 2;
+    } else if (register_index == 7) {
+      operand = registers[0];
+    }
+  } else {
+    operand = low;
     cpu_cycles = 2;
-  } else if (register_index == 7) {
-    operand = registers[0];
   }
 
   // empty the flags
   registers[1] = 0x0;
-  if (high == 0x8) {
+  if (high == 0x8 || high == 0xc) {
     result = *accumulator + operand + carry;
     if (result == 0) {
       registers[1] += 0x80; // 10000000
@@ -49,7 +56,7 @@ int execute_8_bit_arithmetic_operation(int instruction) {
     if (result > 0xff) {
       registers[1] += 0x10; // 00010000
     }
-  } else if (high == 0x9) {
+  } else if (high == 0x9 || high == 0xd) {
     result = *accumulator - operand - carry;
     registers[1] = 0x40; // 01000000
     if (result == 0) {
@@ -74,23 +81,30 @@ int execute_8_bit_logical_operation(int instruction) {
   int low = instruction % 0x10;
 
   char *accumulator = registers;
-  int operand, base_register_index = 2, register_index = low & 0x7;
+  int operand, base_register_index = 2;
   uint8_t result = *accumulator;
 
   int cpu_cycles = 1;
 
-  if (register_index < 6) {
-    operand = registers[base_register_index + register_index];
-  } else if (register_index == 6) {
-    // TODO fix the [HL] value reference
-    operand = registers[register_index] * 0x100 + registers[register_index + 1];
+  if (high < 0xe) {
+    int register_index = low & 0x7;
+    if (register_index < 6) {
+      operand = registers[base_register_index + register_index];
+    } else if (register_index == 6) {
+      // TODO fix the [HL] value reference
+      operand =
+          registers[register_index] * 0x100 + registers[register_index + 1];
+      cpu_cycles = 2;
+    } else if (register_index == 7) {
+      operand = registers[0];
+    }
+  } else {
+    operand = low;
     cpu_cycles = 2;
-  } else if (register_index == 7) {
-    operand = registers[0];
   }
 
   registers[1] += 0x0;
-  if (high == 0xA) {
+  if (high == 0xA || high == 0xe) {
     if (low < 0x8) {
       result = *accumulator & operand;
       registers[1] += 0x20; // 00100000
@@ -100,7 +114,7 @@ int execute_8_bit_logical_operation(int instruction) {
     if (result == 0) {
       registers[1] += 0x80; // 10000000
     }
-  } else if (high == 0xB && low < 0x8) {
+  } else if ((high == 0xB || high == 0xe) && low < 0x8) {
     result = *accumulator | operand;
     if (result == 0) {
       registers[1] += 0x80; // 10000000
@@ -109,7 +123,7 @@ int execute_8_bit_logical_operation(int instruction) {
 
   *accumulator = result;
 
-  if (high == 0xB && low >= 0x8) {
+  if ((high == 0xB || high == 0xe) && low >= 0x8) {
     result = *accumulator - operand;
     if (result == 0) {
       registers[1] += 0x80; // 10000000
@@ -126,8 +140,9 @@ int execute_8_bit_logical_operation(int instruction) {
   return cpu_cycles;
 }
 
-int calculate(int instruction) {
+int execute_instruction(int instruction) {
   int high = instruction / 0x10;
+  int low = instruction % 0x10;
   int cpu_cycles = 0;
 
   printf("Op code: 0x%x\n", high);
@@ -139,10 +154,30 @@ int calculate(int instruction) {
   case 0x9:
     cpu_cycles = execute_8_bit_arithmetic_operation(instruction);
     break;
-  case 0xA:
-  case 0xB:
+  case 0xa:
+  case 0xb:
     cpu_cycles = execute_8_bit_logical_operation(instruction);
     break;
+  case 0xc:
+    if (low == 0x6 || low == 0xe) {
+      cpu_cycles = execute_8_bit_arithmetic_operation(instruction);
+      break;
+    }
+  case 0xd:
+    if (low == 0x6 || low == 0xe) {
+      cpu_cycles = execute_8_bit_arithmetic_operation(instruction);
+      break;
+    }
+  case 0xe:
+    if (low == 0x6 || low == 0xe) {
+      cpu_cycles = execute_8_bit_logical_operation(instruction);
+      break;
+    }
+  case 0xf:
+    if (low == 0x6 || low == 0xe) {
+      cpu_cycles = execute_8_bit_logical_operation(instruction);
+      break;
+    }
 
   default:
     break;
