@@ -180,13 +180,15 @@ int execute_8_bit_logical_instruction(int instruction) {
 int execute_instruction(int instruction) {
   int high = instruction / 0x10;
   int low = instruction % 0x10;
-  int cpu_cycles = 0;
+  int cpu_cycles = 1;
 
   printf("Op code: 0x%x\n", high);
 
   printf("Value of register AF: %d\n", registers[0] * 0x100 + registers[1]);
 
   switch (high) {
+  case 0x00:
+    break;
   case 0x4:
   case 0x5:
   case 0x6:
