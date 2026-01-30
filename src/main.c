@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "./memory/memory.h"
 #include "./sm83/alu.h"
 
 int main() {
@@ -7,7 +8,7 @@ int main() {
 
   boot_cpu();
 
-  calculate(0x23);
+  execute_instruction(0x23);
 
   return 0;
 }

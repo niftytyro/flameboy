@@ -2,6 +2,6 @@
 #define  ALU
 
 void boot_cpu();
-int calculate(int operation);
+int execute_instruction(int operation);
 
 #endif
