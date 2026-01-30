@@ -23,4 +23,5 @@ uint8_t read_rom(uint16_t address) {
     return ROM_BANK0[address];
   }
   // TODO implement banked ROM
+  return 0;
 }
