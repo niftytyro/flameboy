@@ -5,6 +5,6 @@
 
 void initialize_memory();
 
-int read_from_address(uint16_t address);
+int read_address(uint16_t address);
 
 #endif
