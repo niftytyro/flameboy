@@ -1,0 +1,20 @@
+#ifndef CARTRIDGE
+#define CARTRIDGE
+
+#include <stdint.h>
+
+void load_rom();
+
+uint8_t read_cgb_flag();
+
+uint8_t read_cartridge_type();
+
+uint8_t read_rom_size();
+
+uint8_t read_ram_size();
+
+uint8_t read_header_checksum();
+
+uint8_t read_rom(uint8_t address);
+
+#endif
