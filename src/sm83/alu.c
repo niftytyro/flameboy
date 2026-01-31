@@ -14,25 +14,25 @@ int extract_register_index_from_low_bits(int low) { return low & 0x7; }
 int execute_8_bit_load_instruction(int instruction) {
   int low = instruction % 0x10;
 
-  int base_register_index = 2,
-      register_index = extract_register_index_from_low_bits(low),
+  int register_index = extract_register_index_from_low_bits(low),
       target_register_index = (instruction % 0x40) / 0x8, cpu_cycles = 1;
 
   if (target_register_index < 0x6) {
     if (register_index < 0x6) {
-      registers[target_register_index] = registers[register_index];
+      registers[BASE_REGISTER_INDEX + target_register_index] =
+          registers[BASE_REGISTER_INDEX + register_index];
     } else if (register_index == 0x6) {
       // TODO fix the [HL] value reference
-      registers[target_register_index] = -1;
+      registers[BASE_REGISTER_INDEX + target_register_index] = -1;
       cpu_cycles = 2;
     } else if (register_index == 0x7) {
-      registers[target_register_index] = registers[0];
+      registers[BASE_REGISTER_INDEX + target_register_index] = registers[0];
     }
   } else if (target_register_index == 0x6) {
     // TODO implement [HL] value reference && also implement 0x76 HALT
   } else {
     if (register_index < 0x6) {
-      registers[0] = registers[register_index];
+      registers[0] = registers[BASE_REGISTER_INDEX + register_index];
     } else if (register_index == 0x6) {
       // TODO fix the [HL] value reference
       registers[0] = -1;
