@@ -4,9 +4,28 @@
 
 #include "../addressing/addressing.h"
 
+const int sizeof_ROM_BANK0 = 16 * 1024;
 uint8_t *ROM_BANK0 = NULL;
 
-void load_rom() { ROM_BANK0 = malloc(16 * 1024); }
+int load_rom(char *path) {
+  ROM_BANK0 = malloc(sizeof_ROM_BANK0);
+  FILE *fp;
+
+  fp = fopen(path, "rb");
+
+  if (fp == NULL) {
+    fclose(fp);
+    return -1;
+  }
+
+  if (fread(ROM_BANK0, sizeof(ROM_BANK0), sizeof_ROM_BANK0, fp) == 0) {
+    fclose(fp);
+    return -1;
+  }
+
+  fclose(fp);
+  return 0;
+}
 
 uint8_t read_cgb_flag() { return read_address(0x143); }
 

@@ -3,11 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../addressing/addressing.h"
+
 char *registers = NULL;
 
 const int BASE_REGISTER_INDEX = 2;
 
-void boot_cpu() { registers = malloc(sizeof(char) * 2 * 6); }
+void boot_cpu() { registers = calloc(2 * 6, sizeof(char)); }
 
 int extract_register_index_from_low_bits(int low) { return low & 0x7; }
 
@@ -177,7 +179,10 @@ int execute_8_bit_logical_instruction(int instruction) {
   return cpu_cycles;
 }
 
-int execute_instruction(int instruction) {
+int execute() {
+  uint16_t PC = registers[10] * 0x1000 + registers[11];
+  uint8_t instruction = read_address(PC);
+
   int high = instruction / 0x10;
   int low = instruction % 0x10;
   int cpu_cycles = 1;
@@ -185,6 +190,10 @@ int execute_instruction(int instruction) {
   printf("Op code: 0x%x\n", high);
 
   printf("Value of register AF: %d\n", registers[0] * 0x100 + registers[1]);
+
+  if (PC > 0xffff) {
+    return -1;
+  }
 
   switch (high) {
   case 0x00:

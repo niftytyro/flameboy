@@ -7,12 +7,14 @@ const uint8_t *HRAM = NULL;
 const uint8_t *WRAM = NULL;
 const uint8_t *VRAM = NULL;
 const uint8_t *IO_REGISTERS = NULL;
+const uint8_t *EXTERNAL_RAM = NULL;
 
-void initialize_memory() {
-  WRAM = malloc(8 * 1024);
-  VRAM = malloc(8 * 1024);
-  HRAM = malloc(128);
-  IO_REGISTERS = malloc(0xff7f - 0xff00 + 1);
+void initialize_memory(uint8_t cartridge_ram_size) {
+  WRAM = calloc(8 * 1024, sizeof(uint8_t));
+  VRAM = calloc(8 * 1024, sizeof(uint8_t));
+  HRAM = calloc(128, sizeof(uint8_t));
+  IO_REGISTERS = calloc(0xff7f - 0xff00 + 1, sizeof(uint8_t));
+  EXTERNAL_RAM = calloc(cartridge_ram_size, sizeof(uint8_t));
 }
 
 uint8_t read_WRAM(uint16_t address) { return WRAM[address]; }

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void load_rom();
+int load_rom(char *path);
 
 uint8_t read_cgb_flag();
 

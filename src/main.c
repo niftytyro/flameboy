@@ -7,13 +7,21 @@
 int main() {
   printf("Hello, Gameboy\n");
 
+  char *rom_path = "../roms/test.gb";
+
   boot_cpu();
-  initialize_memory();
-  load_rom();
+  load_rom(rom_path);
+  uint8_t cartridge_ram_size = read_ram_size();
+  initialize_memory(cartridge_ram_size);
 
   /* boot_rom(); */
 
-  execute_instruction(0x23);
+  while (1) {
+    int cpu_cycles = execute();
+    if (cpu_cycles < 0) {
+      break;
+    }
+  }
 
   return 0;
 }
