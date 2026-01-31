@@ -5,6 +5,9 @@
 
 void initialize_memory();
 
-int read_address(uint16_t address);
+uint8_t read_WRAM(uint16_t address);
+uint8_t read_VRAM(uint16_t address);
+uint8_t read_IO_register(uint16_t address);
+uint8_t read_HRAM(uint16_t address);
 
 #endif

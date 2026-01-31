@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../memory/memory.h"
+#include "../addressing/addressing.h"
 
 uint8_t *ROM_BANK0 = NULL;
 
