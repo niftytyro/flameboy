@@ -1,1 +1,3 @@
 output/*
+roms/*.gb
+roms/*.o
