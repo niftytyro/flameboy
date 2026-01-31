@@ -4,11 +4,11 @@
 
 #include "../cartridge/cartridge.h"
 
-const uint8_t *HRAM = NULL;
-const uint8_t *WRAM = NULL;
-const uint8_t *VRAM = NULL;
-const uint8_t *IO_REGISTERS = NULL;
-const uint8_t *EXTERNAL_RAM = NULL;
+uint8_t *HRAM = NULL;
+uint8_t *WRAM = NULL;
+uint8_t *VRAM = NULL;
+uint8_t *IO_REGISTERS = NULL;
+uint8_t *EXTERNAL_RAM = NULL;
 
 void initialize_memory(uint8_t cartridge_ram_size) {
   WRAM = calloc(8 * 1024, sizeof(uint8_t));
@@ -19,12 +19,20 @@ void initialize_memory(uint8_t cartridge_ram_size) {
   printf("Initialized Memory ✅\n");
 }
 
-const uint8_t *read_WRAM(uint16_t address) { return &WRAM[address]; }
+uint8_t *read_WRAM(uint16_t address) { return &WRAM[address]; }
 
-const uint8_t *read_VRAM(uint16_t address) { return &VRAM[address]; }
+uint8_t *read_VRAM(uint16_t address) { return &VRAM[address]; }
 
-const uint8_t *read_HRAM(uint16_t address) { return &VRAM[address]; }
+uint8_t *read_HRAM(uint16_t address) { return &VRAM[address]; }
 
-const uint8_t *read_IO_register(uint16_t address) {
-  return &IO_REGISTERS[address];
+uint8_t *read_IO_register(uint16_t address) { return &IO_REGISTERS[address]; }
+
+void write_WRAM(uint16_t address, uint8_t byte) { WRAM[address] = byte; }
+
+void write_VRAM(uint16_t address, uint8_t byte) { VRAM[address] = byte; }
+
+void write_HRAM(uint16_t address, uint8_t byte) { VRAM[address] = byte; }
+
+void write_IO_register(uint16_t address, uint8_t byte) {
+  IO_REGISTERS[address] = byte;
 }

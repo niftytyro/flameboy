@@ -25,7 +25,7 @@ int main() {
     return -1;
   }
 
-  const uint8_t *cartridge_ram_size = read_ram_size();
+  uint8_t *cartridge_ram_size = read_ram_size();
   printf("Cartridge RAM size: %d\n", *cartridge_ram_size);
 
   initialize_memory(*cartridge_ram_size);

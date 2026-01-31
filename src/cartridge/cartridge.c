@@ -36,18 +36,18 @@ int load_rom(char *path) {
   return 0;
 }
 
-const uint8_t *read_cgb_flag() { return read_address(0x143); }
+uint8_t *read_cgb_flag() { return read_address(0x143); }
 
-const uint8_t *read_cartridge_type() { return read_address(0x147); }
+uint8_t *read_cartridge_type() { return read_address(0x147); }
 
-const uint8_t *read_rom_size() { return read_address(0x148); }
+uint8_t *read_rom_size() { return read_address(0x148); }
 
-const uint8_t *read_ram_size() {
+uint8_t *read_ram_size() {
   printf("Reading RAM size at 0x%04x\n", 0x149);
   return read_address(0x149);
 }
 
-const uint8_t *read_header_checksum() { return read_address(0x14d); }
+uint8_t *read_header_checksum() { return read_address(0x14d); }
 
 void print_rom_contents() {
   printf("=============================== Printing ROM Contents "
@@ -61,7 +61,7 @@ void print_rom_contents() {
          "===============================\n");
 }
 
-const uint8_t *read_rom(uint16_t address) {
+uint8_t *read_rom(uint16_t address) {
   if (address < 0x4000) {
     printf("ROM_BANK0[$%04x]: 0x%02x\n", address, ROM_BANK0[address]);
     return &ROM_BANK0[address];
