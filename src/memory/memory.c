@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "../cartridge/cartridge.h"
@@ -15,12 +16,15 @@ void initialize_memory(uint8_t cartridge_ram_size) {
   HRAM = calloc(128, sizeof(uint8_t));
   IO_REGISTERS = calloc(0xff7f - 0xff00 + 1, sizeof(uint8_t));
   EXTERNAL_RAM = calloc(cartridge_ram_size, sizeof(uint8_t));
+  printf("Initialized Memory ✅\n");
 }
 
-uint8_t read_WRAM(uint16_t address) { return WRAM[address]; }
+const uint8_t *read_WRAM(uint16_t address) { return &WRAM[address]; }
 
-uint8_t read_VRAM(uint16_t address) { return VRAM[address]; }
+const uint8_t *read_VRAM(uint16_t address) { return &VRAM[address]; }
 
-uint8_t read_HRAM(uint16_t address) { return VRAM[address]; }
+const uint8_t *read_HRAM(uint16_t address) { return &VRAM[address]; }
 
-uint8_t read_IO_register(uint16_t address) { return IO_REGISTERS[address]; }
+const uint8_t *read_IO_register(uint16_t address) {
+  return &IO_REGISTERS[address];
+}

@@ -1,13 +1,15 @@
 #include "../cartridge/cartridge.h"
 #include "../memory/memory.h"
 #include <stdint.h>
+#include <stdio.h>
 
-uint8_t read_address(uint16_t address) {
+const uint8_t *read_address(uint16_t address) {
+  printf("Reading address: 0x%04x\n", address);
   if (address < 0x0100) {
-    uint16_t boot_rom_flag = read_IO_register(0x50);
-    if (boot_rom_flag == 0) {
-      // TODO execute boot ROM
-    }
+    /* uint8_t boot_rom_flag = read_IO_register(0x50); */
+    /* if (boot_rom_flag == 0) { */
+    /*   // TODO execute boot ROM */
+    /* } */
   }
   if (address < 0x4000) {
     return read_rom(address);
@@ -44,5 +46,5 @@ uint8_t read_address(uint16_t address) {
     // TODO implement Interrupt Enable register
   }
 
-  return -1;
+  return NULL;
 }
