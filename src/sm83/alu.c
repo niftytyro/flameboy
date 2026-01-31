@@ -12,64 +12,149 @@ void boot_cpu() { printf("CPU boot successful\n"); }
 
 int extract_register_index_from_low_bits(int low) { return low & 0x7; }
 
+void execute_byte_rotation_instruction(uint8_t *instruction,
+                                       uint8_t *cpu_cycles,
+                                       uint8_t *number_of_bytes) {
+  uint8_t accumulator = read_half_register_by_name('A');
+  uint8_t flags = read_half_register_by_name('F');
+
+  uint8_t bit_7 = accumulator / 0x80;
+
+  // rotate A by 1
+  accumulator = accumulator << 1;
+  accumulator += bit_7;
+
+  // update carry flag based on the result
+  flags = flags & (0xef + (bit_7 * 0x10));
+
+  write_register_by_name("AF", accumulator, flags);
+}
+
+void execute_inc_dec_instruction(uint8_t *instruction, uint8_t *cpu_cycles,
+                                 uint8_t *number_of_bytes) {
+  int high = *instruction / 0x10;
+  int low = *instruction % 0x10;
+
+  int register_index = BASE_REGISTER_INDEX + high * 2;
+
+  switch (low) {
+  case 0x3:
+    increment_register(register_index);
+    break;
+  case 0x4: {
+    increment_half_register(register_index);
+    break;
+  }
+  case 0x5:
+    decrement_half_register(register_index);
+    break;
+  case 0xb:
+    decrement_register(register_index);
+    break;
+  case 0xc:
+    increment_half_register(register_index + 1);
+    break;
+  case 0xd:
+    decrement_half_register(register_index + 1);
+    break;
+  }
+}
+
+void execute_8_bit_load_value_instruction(uint8_t *instruction,
+                                          uint8_t *cpu_cycles,
+                                          uint8_t *number_of_bytes) {
+  int high = *instruction / 0x10;
+  int low = *instruction % 0x10;
+
+  int register_index = BASE_REGISTER_INDEX + high * 2;
+  uint8_t value = *(instruction + 1);
+
+  write_half_register(register_index, value);
+  *cpu_cycles = 2;
+  *number_of_bytes = 2;
+}
+
+void execute_8_bit_load_from_register_instruction(uint8_t *instruction,
+                                                  uint8_t *cpu_cycles,
+                                                  uint8_t *number_of_bytes) {
+  int low = *instruction % 0x10;
+
+  int register_index = extract_register_index_from_low_bits(low),
+      target_register_index = (*instruction % 0x40) / 0x8;
+
+  if (target_register_index < 0x6) {
+    if (register_index < 0x6) {
+      write_half_register(
+          BASE_REGISTER_INDEX + target_register_index,
+          read_half_register(BASE_REGISTER_INDEX + register_index));
+    } else if (register_index == 0x6) {
+      // TODO fix the [HL] value reference
+      write_half_register(BASE_REGISTER_INDEX + target_register_index, -1);
+      *cpu_cycles = 2;
+    } else if (register_index == 0x7) {
+      write_half_register(BASE_REGISTER_INDEX + target_register_index,
+                          read_half_register_by_name('A'));
+    }
+  } else if (target_register_index == 0x6) {
+    // TODO implement [HL] value reference && also implement 0x76 HALT
+  } else {
+    if (register_index < 0x6) {
+      write_half_register_by_name(
+          'A', read_half_register(BASE_REGISTER_INDEX + register_index));
+    } else if (register_index == 0x6) {
+      // TODO fix the [HL] value reference
+      write_half_register_by_name('A', -1);
+      *cpu_cycles = 2;
+    } else if (register_index == 0x7) {
+      uint16_t address = read_register_by_name("HL");
+      uint8_t *byte = read_address(address);
+      write_half_register_by_name('A', *byte);
+    }
+  }
+  return;
+}
+
+void execute_16_bit_load_instruction(uint8_t *instruction, uint8_t *cpu_cycles,
+                                     uint8_t *number_of_bytes) {
+  int high = *instruction / 0x10;
+  int low = *instruction % 0x10;
+
+  int register_index = BASE_REGISTER_INDEX + high * 2;
+  if (low == 0x1) {
+    write_register(register_index, *(instruction + 1), *(instruction + 2));
+
+    *cpu_cycles = 3;
+    *number_of_bytes = 3;
+  } else if (low == 0x2) {
+    uint16_t address = read_register(register_index);
+    write_address(address, read_half_register_by_name('A'));
+
+    if (high == 0x2) {
+      increment_register_by_name("HL");
+    } else if (high == 0x3) {
+      decrement_register_by_name("HL");
+    }
+
+    *cpu_cycles = 2;
+  }
+}
+
 void execute_load_instruction(uint8_t *instruction, uint8_t *cpu_cycles,
                               uint8_t *number_of_bytes) {
   int high = *instruction / 0x10;
   int low = *instruction % 0x10;
 
   if (high < 0x4) {
-    int register_index = BASE_REGISTER_INDEX + high * 2;
-    if (low == 0x1) {
-      if (high == 0x0) {
-        write_register(register_index, *(instruction + 1), *(instruction + 2));
-      }
-
-      *cpu_cycles = 3;
-      *number_of_bytes = 3;
-    } else if (low == 0x2) {
-      uint16_t address = read_register(register_index);
-      write_address(address, read_half_register_by_name('A'));
-
-      if (high >= 0x2) {
-        increment_HL();
-      }
-
-      *cpu_cycles = 2;
+    if (low < 0x3) {
+      execute_16_bit_load_instruction(instruction, cpu_cycles, number_of_bytes);
+    }
+    if (low == 0x6) {
+      execute_8_bit_load_value_instruction(instruction, cpu_cycles,
+                                           number_of_bytes);
     }
   } else if (high < 0x8) {
-    int register_index = extract_register_index_from_low_bits(low),
-        target_register_index = (*instruction % 0x40) / 0x8;
-
-    if (target_register_index < 0x6) {
-      if (register_index < 0x6) {
-        write_half_register(
-            BASE_REGISTER_INDEX + target_register_index,
-            read_half_register(BASE_REGISTER_INDEX + register_index));
-      } else if (register_index == 0x6) {
-        // TODO fix the [HL] value reference
-        write_half_register(BASE_REGISTER_INDEX + target_register_index, -1);
-        *cpu_cycles = 2;
-      } else if (register_index == 0x7) {
-        write_half_register(BASE_REGISTER_INDEX + target_register_index,
-                            read_half_register_by_name('A'));
-      }
-    } else if (target_register_index == 0x6) {
-      // TODO implement [HL] value reference && also implement 0x76 HALT
-    } else {
-      if (register_index < 0x6) {
-        write_half_register_by_name(
-            'A', read_half_register(BASE_REGISTER_INDEX + register_index));
-      } else if (register_index == 0x6) {
-        // TODO fix the [HL] value reference
-        write_half_register_by_name('A', -1);
-        *cpu_cycles = 2;
-      } else if (register_index == 0x7) {
-        uint16_t address = read_register_by_name("HL");
-        uint8_t *byte = read_address(address);
-        write_half_register_by_name('A', *byte);
-      }
-    }
-    return;
+    execute_8_bit_load_from_register_instruction(instruction, cpu_cycles,
+                                                 number_of_bytes);
   }
 }
 
@@ -114,35 +199,15 @@ void execute_8_bit_arithmetic_instruction(uint8_t *instruction,
   }
 
   // empty the flags
-  flags = 0x0;
   if (high == 0x8 || high == 0xc) {
     result = accumulator + operand + carry;
-    if (result == 0) {
-      flags += 0x80; // 10000000
-    }
-    if (((accumulator & 0xf) + (operand & 0xf) + carry) > 0xf) {
-      flags += 0x20; // 00100000
-    }
-    if (result > 0xff) {
-      flags += 0x10; // 00010000
-    }
+    update_flags(0, accumulator, result);
   } else if (high == 0x9 || high == 0xd) {
     result = accumulator - operand - carry;
-    flags = 0x40; // 01000000
-    if (result == 0) {
-      flags += 0x80; // 10000000
-    }
-    if (((accumulator & 0xf) - (operand & 0xf) - carry) < 0x0) {
-      flags += 0x20; // 00100000
-    }
-    if (result < 0x0) {
-      // fill in the carry flag
-      flags += 0x10; // 00010000
-    }
+    update_flags(1, accumulator, result);
   }
 
   write_half_register_by_name('A', result);
-  write_half_register_by_name('F', flags);
 }
 
 void execute_8_bit_logical_instruction(uint8_t *instruction,
@@ -175,22 +240,18 @@ void execute_8_bit_logical_instruction(uint8_t *instruction,
     *cpu_cycles = 2;
   }
 
-  flags = 0x0;
-  if (high == 0xA || high == 0xe) {
+  flags = 0;
+  if (high == 0xa || high == 0xe) {
     if (low < 0x8) {
       result = accumulator & operand;
-      flags += 0x20; // 00100000
+      write_flags(result == 0, 0, 1, 0);
     } else {
       result = accumulator ^ operand;
+      write_flags(result == 0, 0, 0, 0);
     }
-    if (result == 0) {
-      flags += 0x80; // 10000000
-    }
-  } else if ((high == 0xB || high == 0xe) && low < 0x8) {
+  } else if ((high == 0xb || high == 0xf) && low < 0x8) {
     result = accumulator | operand;
-    if (result == 0) {
-      flags += 0x80; // 10000000
-    }
+    write_flags(result == 0, 0, 0, 0);
   }
 
   write_half_register_by_name('A', result);
@@ -237,10 +298,19 @@ int execute() {
       // NOP
       break;
     }
-    if (low < 0x3) {
+    if (low < 0x3 || low == 0x6) {
       execute_load_instruction(instruction, instruction_metadata,
                                instruction_metadata + 1);
       break;
+    }
+    if (low < 0x6) {
+      execute_inc_dec_instruction(instruction, instruction_metadata,
+                                  instruction_metadata + 1);
+      break;
+    }
+    if (low == 0x7) {
+      execute_byte_rotation_instruction(instruction, instruction_metadata,
+                                        instruction_metadata + 1);
     }
   case 0x3:
   case 0x4:

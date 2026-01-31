@@ -3,19 +3,31 @@
 
 #include <stdint.h>
 
-void increment_HL();
-void decrement_HL();
-
 uint8_t read_half_register(int i);
 uint8_t read_half_register_by_name(char name);
 
 uint16_t read_register(int i);
 uint16_t read_register_by_name(char *name);
 
-void write_half_register(int index, uint8_t byte);
-void write_half_register_by_name(char name, uint8_t byte);
+uint8_t write_half_register(int index, uint8_t byte);
+uint8_t write_half_register_by_name(char name, uint8_t byte);
 
-void write_register(int index, uint8_t byte1, uint8_t byte2);
-void write_register_by_name(char *name, uint8_t byte1, uint8_t byte2);
+uint16_t write_register(int index, uint8_t byte1, uint8_t byte2);
+uint16_t write_register_by_name(char *name, uint8_t byte1, uint8_t byte2);
+
+uint16_t increment_register(int i);
+uint16_t decrement_register(int i);
+uint8_t increment_half_register(int i);
+uint8_t decrement_half_register(int i);
+
+uint16_t increment_register_by_name(char *name);
+uint16_t decrement_register_by_name(char *name);
+uint8_t increment_half_register_by_name(char name);
+uint8_t decrement_half_register_by_name(char name);
+
+uint8_t read_flags(char name);
+uint8_t write_flags(uint8_t z, uint8_t n, uint8_t h, uint8_t c);
+uint8_t update_flags(bool negative, uint8_t old_value, uint8_t new_value);
 
 #endif
+

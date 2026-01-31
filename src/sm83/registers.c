@@ -1,3 +1,5 @@
+#include "registers.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,22 +13,37 @@ void initialize_registers() {
   registers[11] = 0x50;
 }
 
-void increment_HL() {
-  uint16_t HL = registers[6] * 0x100 + registers[7];
-
-  HL++;
-
-  registers[6] = HL & 0xff00;
-  registers[7] = HL & 0x00ff;
+uint8_t write_flags(uint8_t z, uint8_t n, uint8_t h, uint8_t c) {
+  return write_half_register_by_name('F',
+                                     c * 0x10 + h * 0x20 + n * 0x40 + z * 0x80);
 }
 
-void decrement_HL() {
-  uint16_t HL = registers[6] * 0x100 + registers[7];
+uint8_t read_flags(char name) {
+  uint8_t flags = read_half_register_by_name('F');
 
-  HL--;
+  if (name == 'z') {
+    return flags & 0x80;
+  }
+  if (name == 'n') {
+    return flags & 0x40;
+  }
+  if (name == 'h') {
+    return flags & 0x20;
+  }
+  if (name == 'c') {
+    return flags & 0x10;
+  }
 
-  registers[6] = HL & 0xff00;
-  registers[7] = HL & 0x00ff;
+  return -1;
+}
+
+uint8_t update_flags(bool negative, uint8_t old_value, uint8_t new_value) {
+  uint8_t z = new_value == 0;
+  uint8_t n = negative;
+  uint8_t h = ((new_value >> 3 & 0x1) == 1) && ((new_value >> 3 & 0x1) == 0);
+  uint8_t c = new_value > 0xff;
+
+  return write_flags(z, n, h, c);
 }
 
 int get_register_index(char name) {
@@ -80,24 +97,96 @@ uint16_t read_register_by_name(char *name) {
   return registers[i] * 0x100 + registers[i + 1];
 }
 
-void write_half_register_by_name(char name, uint8_t byte) {
+uint8_t write_half_register_by_name(char name, uint8_t byte) {
   registers[get_register_index(name)] = byte;
+  return byte;
 }
 
-void write_half_register(int index, uint8_t byte) { registers[index] = byte; }
+uint8_t write_half_register(int index, uint8_t byte) {
+  registers[index] = byte;
+  return byte;
+}
 
-void write_register_by_name(char *name, uint8_t byte1, uint8_t byte2) {
-
+uint16_t write_register_by_name(char *name, uint8_t byte1, uint8_t byte2) {
   int i = get_register_index(name[0]);
 
   registers[i] = byte1;
   registers[i + 1] = byte2;
+
+  return registers[i] * 0x100 + registers[i + 1];
 }
 
-void write_register(int index, uint8_t byte1, uint8_t byte2) {
-
+uint16_t write_register(int index, uint8_t byte1, uint8_t byte2) {
   int i = get_register_index(index);
 
   registers[i] = byte1;
   registers[i + 1] = byte2;
+
+  return registers[i] * 0x100 + registers[i + 1];
+}
+
+uint8_t increment_half_register(int i) {
+  uint8_t value = read_half_register(i);
+
+  uint8_t new_value = write_half_register(i, value + 1);
+  uint8_t half_carry =
+      ((value >> 3 & 0x1) == 1) && ((new_value >> 3 & 0x1) == 0);
+
+  write_flags(value == 0, 0, half_carry, read_flag('c'));
+}
+
+uint8_t decrement_half_register(int i) {
+  uint8_t value = read_half_register(i);
+
+  value--;
+
+  return write_half_register(i, value);
+}
+
+uint16_t increment_register(int i) {
+  uint16_t value = read_register(i);
+
+  value++;
+
+  return write_register(i, value / 0x100, value % 0x100);
+}
+
+uint16_t decrement_register(int i) {
+  uint16_t value = read_register(i);
+
+  value--;
+
+  return write_register(i, value / 0x100, value % 0x100);
+}
+
+uint8_t increment_half_register_by_name(char name) {
+  uint8_t value = read_half_register_by_name(name);
+
+  value++;
+
+  return write_half_register_by_name(name, value);
+}
+
+uint8_t decrement_half_register_by_name(char name) {
+  uint8_t value = read_half_register_by_name(name);
+
+  value--;
+
+  return write_half_register_by_name(name, value);
+}
+
+uint16_t increment_register_by_name(char *name) {
+  uint16_t value = read_register_by_name(name);
+
+  value++;
+
+  return write_register_by_name(name, value / 0x100, value % 0x100);
+}
+
+uint16_t decrement_register_by_name(char *name) {
+  uint16_t value = read_register_by_name(name);
+
+  value--;
+
+  return write_register_by_name(name, value / 0x100, value % 0x100);
 }
