@@ -3,13 +3,13 @@
 
 #include <stdint.h>
 
-void ld_R8_R8(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_r8_r8(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes);
 
-void ld_R8_N8(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_r8_n8(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes);
 
-void ld_R16_N16(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_r16_n16(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes);
 
 void ld_HLa_r8(uint8_t *instruction, uint8_t *cpu_cycles,
@@ -33,7 +33,7 @@ void ldh_n16a_A(uint8_t *instruction, uint8_t *cpu_cycles,
 void ldh_Ca_A(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes);
 
-void ld_A_r16(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_A_r16a(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes);
 
 void ld_A_n16(uint8_t *instruction, uint8_t *cpu_cycles,

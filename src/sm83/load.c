@@ -3,29 +3,11 @@
 
 #include "../addressing/addressing.h"
 #include "registers.h"
+#include "utils.h"
 
-const int BASE_REGISTER_INDEX = 2;
-
-int extract_register_index(int low) {
-  // TODO implement full register index
-  int i = low % 0x8;
-  i += BASE_REGISTER_INDEX;
-  i %= 0x8;
-
-  return i;
-}
-
-int extract_half_register_index(int low) {
-  int i = low % 0x8;
-  i += BASE_REGISTER_INDEX;
-  i %= 0x8;
-
-  return i;
-}
-
-void ld_R8_R8(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_r8_r8(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
-  int low = *instruction & 0x1;
+  int low = *instruction & 0xf;
 
   int register_index = extract_half_register_index(low),
       target_register_index = BASE_REGISTER_INDEX + (*instruction % 0x40) / 0x8;
@@ -39,9 +21,9 @@ void ld_R8_R8(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 1;
 }
 
-void ld_R8_N8(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_r8_n8(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
-  int low = *instruction & 0x1;
+  int low = *instruction & 0xf;
 
   int register_index = extract_half_register_index(low);
   uint8_t operand = *(instruction + 1);
@@ -54,9 +36,9 @@ void ld_R8_N8(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 2;
 }
 
-void ld_R16_N16(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_r16_n16(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes) {
-  int low = *instruction & 0x1;
+  int low = *instruction & 0xf;
 
   int register_index = extract_half_register_index(low);
   uint8_t byte1 = *(instruction + 1), byte2 = *(instruction + 2);
@@ -71,7 +53,7 @@ void ld_R16_N16(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void ld_HLa_r8(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
-  int low = *instruction & 0x1;
+  int low = *instruction & 0xf;
   int register_index = extract_half_register_index(low);
 
   uint16_t address = read_register_by_name("HL");
@@ -96,7 +78,7 @@ void ld_HLa_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void ld_r8_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
-  int low = *instruction & 0x1;
+  int low = *instruction & 0xf;
   int register_index = extract_half_register_index(low);
 
   uint16_t address = read_register_by_name("HL");
@@ -110,7 +92,7 @@ void ld_r8_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void ld_r16a_A(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
-  int low = *instruction & 0x1;
+  int low = *instruction & 0xf;
   int register_index = extract_register_index(low);
 
   uint16_t address = read_register(register_index);
@@ -155,9 +137,9 @@ void ldh_Ca_A(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 1;
 }
 
-void ld_A_r16(uint8_t *instruction, uint8_t *cpu_cycles,
-              uint8_t *number_of_bytes) {
-  int low = *instruction & 0x1;
+void ld_A_r16a(uint8_t *instruction, uint8_t *cpu_cycles,
+               uint8_t *number_of_bytes) {
+  int low = *instruction & 0xf;
   int register_index = extract_register_index(low);
 
   uint16_t address = read_register(register_index);
@@ -245,7 +227,6 @@ void ldh_A_HLDa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void ld_SP_n16(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
-  uint16_t address = read_register_by_name("HL");
   uint8_t byte1 = *(instruction + 1), byte2 = *(instruction + 2);
 
   write_register_by_name("SP", byte1, byte2);
@@ -260,15 +241,12 @@ void ld_HL_SPe8(uint8_t *instruction, uint8_t *cpu_cycles,
   uint16_t value = read_register_by_name("SP");
   uint16_t new_value = value + e8;
 
-  write_register_by_name("SP", value & 0xff00, value & 0xff00);
+  write_register_by_name("SP", value / 0x100, value % 0x100);
 
-  write_register_by_name("HL", value & 0xff00, value & 0xff00);
+  write_register_by_name("HL", value / 0x100, value % 0x100);
 
-  if (e8 < 0) {
-    write_flags(0, 0, (new_value & 0xf) > (value & 0xf), new_value > value);
-  } else {
-    write_flags(0, 0, (new_value & 0xf) < (value & 0xf), new_value < value);
-  }
+  write_flags(0, 0, is_4bit_carry(value, new_value, e8 < 0),
+              is_8bit_carry(value, new_value, e8 < 0));
 
   *cpu_cycles = 3;
   *number_of_bytes = 2;
