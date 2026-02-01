@@ -5,9 +5,6 @@
 
 extern const int BASE_REGISTER_INDEX;
 
-int extract_half_register_index(int nibble);
-int extract_register_index(int nibble);
-
 uint8_t read_half_register(int i);
 uint8_t read_half_register_by_name(char name);
 

@@ -3,6 +3,7 @@
 
 #include "../addressing/addressing.h"
 #include "registers.h"
+#include "utils.h"
 
 void and_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {

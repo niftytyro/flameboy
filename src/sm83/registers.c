@@ -16,23 +16,6 @@ void initialize_registers() {
   registers[11] = 0x50;
 }
 
-int extract_half_register_index(int nibble) {
-  int i = nibble % 0x8;
-  i += BASE_REGISTER_INDEX;
-  i %= 0x8;
-
-  return i;
-}
-
-int extract_register_index(int nibble) {
-  // TODO implement full register index
-  int i = nibble % 0x8;
-  i += BASE_REGISTER_INDEX;
-  i %= 0x8;
-
-  return i;
-}
-
 uint8_t write_flags(uint8_t z, uint8_t n, uint8_t h, uint8_t c) {
   return write_half_register_by_name('F',
                                      c * 0x10 + h * 0x20 + n * 0x40 + z * 0x80);
