@@ -10,7 +10,7 @@ const int BASE_REGISTER_INDEX = 2;
 
 void boot_cpu() { printf("CPU boot successful\n"); }
 
-int extract_register_index_from_low_bits(int low) { return low & 0x7; }
+int extract_half_register_index(int low) { return low & 0x7; }
 
 void execute_byte_rotation_instruction(uint8_t *instruction,
                                        uint8_t *cpu_cycles,
@@ -64,7 +64,6 @@ void execute_8_bit_load_value_instruction(uint8_t *instruction,
                                           uint8_t *cpu_cycles,
                                           uint8_t *number_of_bytes) {
   int high = *instruction / 0x10;
-  int low = *instruction % 0x10;
 
   int register_index = BASE_REGISTER_INDEX + high * 2;
   uint8_t value = *(instruction + 1);
@@ -79,7 +78,7 @@ void execute_8_bit_load_from_register_instruction(uint8_t *instruction,
                                                   uint8_t *number_of_bytes) {
   int low = *instruction % 0x10;
 
-  int register_index = extract_register_index_from_low_bits(low),
+  int register_index = extract_half_register_index(low),
       target_register_index = (*instruction % 0x40) / 0x8;
 
   if (target_register_index < 0x6) {
@@ -178,8 +177,8 @@ void execute_8_bit_arithmetic_instruction(uint8_t *instruction,
     carry = 1;
   }
 
-  if (high < 0xc) {
-    int register_index = extract_register_index_from_low_bits(low);
+  if (high < 0xa) {
+    int register_index = extract_half_register_index(low);
     if (register_index < 6) {
       operand = read_half_register(BASE_REGISTER_INDEX + register_index);
     } else if (register_index == 6) {
@@ -198,13 +197,12 @@ void execute_8_bit_arithmetic_instruction(uint8_t *instruction,
     *cpu_cycles = 2;
   }
 
-  // empty the flags
   if (high == 0x8 || high == 0xc) {
     result = accumulator + operand + carry;
-    update_flags(0, accumulator, result);
+    update_flags(0, accumulator, result, operand + carry);
   } else if (high == 0x9 || high == 0xd) {
     result = accumulator - operand - carry;
-    update_flags(1, accumulator, result);
+    update_flags(1, accumulator, result, operand + carry);
   }
 
   write_half_register_by_name('A', result);
@@ -222,7 +220,7 @@ void execute_8_bit_logical_instruction(uint8_t *instruction,
   int16_t result = accumulator;
 
   if (high < 0xe) {
-    int register_index = extract_register_index_from_low_bits(low);
+    int register_index = extract_half_register_index(low);
     if (register_index < 6) {
       operand = read_half_register(BASE_REGISTER_INDEX + register_index);
     } else if (register_index == 6) {
@@ -256,19 +254,9 @@ void execute_8_bit_logical_instruction(uint8_t *instruction,
 
   write_half_register_by_name('A', result);
 
-  flags = 0x0;
-  if ((high == 0xB || high == 0xe) && low >= 0x8) {
+  if ((high == 0xb || high == 0xf) && low >= 0x8) {
     result = accumulator - operand;
-    if (result == 0) {
-      flags += 0x80; // 10000000
-    }
-    flags += 0x40;
-    if ((accumulator & 0xf) - (operand & 0xf) < 0xf) {
-      flags += 0x20;
-    }
-    if (result < 0) {
-      flags += 0x10;
-    }
+    update_flags(1, accumulator, result, operand);
   }
 
   write_half_register_by_name('F', flags);

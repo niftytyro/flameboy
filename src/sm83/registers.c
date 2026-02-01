@@ -37,11 +37,19 @@ uint8_t read_flags(char name) {
   return -1;
 }
 
-uint8_t update_flags(bool negative, uint8_t old_value, uint8_t new_value) {
-  uint8_t z = new_value == 0;
-  uint8_t n = negative;
-  uint8_t h = ((new_value >> 3 & 0x1) == 1) && ((new_value >> 3 & 0x1) == 0);
-  uint8_t c = new_value > 0xff;
+uint8_t update_flags(bool negative, uint16_t old_value, uint16_t new_value,
+                     uint16_t operand) {
+  uint8_t z, n, h, c;
+  z = new_value == 0;
+  n = negative;
+
+  if (negative) {
+    c = new_value < 0x00;
+    h = (old_value >> 3 & 0x1) == 0 && (operand >> 3 & 0x1) == 1;
+  } else {
+    c = new_value > 0xff;
+    h = ((new_value >> 3 & 0x1) == 1) && ((new_value >> 3 & 0x1) == 0);
+  }
 
   return write_flags(z, n, h, c);
 }

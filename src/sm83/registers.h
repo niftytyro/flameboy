@@ -27,7 +27,7 @@ uint8_t decrement_half_register_by_name(char name);
 
 uint8_t read_flags(char name);
 uint8_t write_flags(uint8_t z, uint8_t n, uint8_t h, uint8_t c);
-uint8_t update_flags(bool negative, uint8_t old_value, uint8_t new_value);
+uint8_t update_flags(bool negative, uint16_t old_value, uint16_t new_value, uint16_t operand);
 
 #endif
 
