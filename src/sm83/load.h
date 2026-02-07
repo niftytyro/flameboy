@@ -54,13 +54,4 @@ void ldh_A_HLIa(uint8_t *instruction, uint8_t *cpu_cycles,
 void ldh_A_HLDa(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes);
 
-void ld_SP_n16(uint8_t *instruction, uint8_t *cpu_cycles,
-               uint8_t *number_of_bytes);
-
-void ld_HL_SPe8(uint8_t *instruction, uint8_t *cpu_cycles,
-                uint8_t *number_of_bytes);
-
-void ld_SP_HL(uint8_t *instruction, uint8_t *cpu_cycles,
-              uint8_t *number_of_bytes);
-
 #endif

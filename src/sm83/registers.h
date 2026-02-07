@@ -1,5 +1,5 @@
-#ifndef ADDRESSING_UTILS
-#define ADDRESSING_UTILS
+#ifndef CPU_REGISTERS
+#define CPU_REGISTERS
 
 #include <stdint.h>
 
@@ -28,7 +28,7 @@ uint8_t increment_half_register_by_name(char name);
 uint8_t decrement_half_register_by_name(char name);
 
 uint8_t read_flag(char name);
-uint8_t write_flags(uint8_t z, uint8_t n, uint8_t h, uint8_t c);
+uint8_t write_flags(bool z, bool n, bool h, bool c);
 uint8_t update_flags(bool negative, uint16_t old_value, uint16_t new_value, uint16_t operand);
 
 #endif

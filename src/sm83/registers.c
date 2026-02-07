@@ -16,7 +16,7 @@ void initialize_registers() {
   registers[11] = 0x50;
 }
 
-uint8_t write_flags(uint8_t z, uint8_t n, uint8_t h, uint8_t c) {
+uint8_t write_flags(bool z, bool n, bool h, bool c) {
   return write_half_register_by_name('F',
                                      c * 0x10 + h * 0x20 + n * 0x40 + z * 0x80);
 }
@@ -143,7 +143,7 @@ uint8_t increment_half_register(int i) {
   uint8_t half_carry =
       ((value >> 3 & 0x1) == 1) && ((new_value >> 3 & 0x1) == 0);
 
-  write_flags(value == 0, 0, half_carry, read_flag('c'));
+  return write_flags(value == 0, 0, half_carry, read_flag('c'));
 }
 
 uint8_t decrement_half_register(int i) {

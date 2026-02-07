@@ -118,37 +118,6 @@ void add_HL_r16(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 1;
 }
 
-void add_HL_SP(uint8_t *instruction, uint8_t *cpu_cycles,
-               uint8_t *number_of_bytes) {
-  uint16_t value = read_register_by_name("HL");
-  uint16_t operand = read_register_by_name("SP");
-
-  uint16_t result = value + operand;
-
-  write_register_by_name("HL", result / 0x100, result % 0x100);
-
-  write_flags(read_flag('Z'), 0, (result & 0x0f00) > (value & 0x0f00),
-              result > value);
-
-  *cpu_cycles = 2;
-  *number_of_bytes = 1;
-}
-
-void add_SP_e8(uint8_t *instruction, uint8_t *cpu_cycles,
-               uint8_t *number_of_bytes) {
-  char e8 = *(instruction + 1);
-  uint16_t value = read_register_by_name("SP");
-  uint16_t result = value + e8;
-
-  write_register_by_name("SP", result / 0x100, result % 0x100);
-
-  write_flags(0, 0, is_4bit_carry(value, result, 0),
-              is_8bit_carry(value, result, 0));
-
-  *cpu_cycles = 4;
-  *number_of_bytes = 2;
-}
-
 void cp_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
   uint8_t low = *instruction & 0xf;
@@ -238,17 +207,6 @@ void dec_r16(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 1;
 }
 
-void dec_SP(uint8_t *instruction, uint8_t *cpu_cycles,
-            uint8_t *number_of_bytes) {
-  uint8_t value = read_register_by_name("SP");
-  uint8_t result = value - 1;
-
-  write_register_by_name("SP", result / 0x100, result % 0x100);
-
-  *cpu_cycles = 2;
-  *number_of_bytes = 1;
-}
-
 void inc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
   uint8_t low = *instruction & 0xf;
@@ -289,17 +247,6 @@ void inc_r16(uint8_t *instruction, uint8_t *cpu_cycles,
   uint8_t result = value + 1;
 
   write_register(register_index, result / 0x100, result % 0x100);
-
-  *cpu_cycles = 2;
-  *number_of_bytes = 1;
-}
-
-void inc_SP(uint8_t *instruction, uint8_t *cpu_cycles,
-            uint8_t *number_of_bytes) {
-  uint8_t value = read_register_by_name("SP");
-  uint8_t result = value + 1;
-
-  write_register_by_name("SP", result / 0x100, result % 0x100);
 
   *cpu_cycles = 2;
   *number_of_bytes = 1;
