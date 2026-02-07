@@ -27,7 +27,7 @@ void ld_r16a_A(uint8_t *instruction, uint8_t *cpu_cycles,
 void ld_n16a_A(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes);
 
-void ldh_n16a_A(uint8_t *instruction, uint8_t *cpu_cycles,
+void ldh_n8a_A(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes);
 
 void ldh_Ca_A(uint8_t *instruction, uint8_t *cpu_cycles,
@@ -36,22 +36,25 @@ void ldh_Ca_A(uint8_t *instruction, uint8_t *cpu_cycles,
 void ld_A_r16a(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes);
 
-void ld_A_n16(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_A_n16a(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes);
 
 void ldh_A_Ca(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes);
 
-void ldh_HLIa_A(uint8_t *instruction, uint8_t *cpu_cycles,
+void ldh_A_n8a(uint8_t *instruction, uint8_t *cpu_cycles,
+              uint8_t *number_of_bytes);
+
+void ld_HLIa_A(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes);
 
-void ldh_HLDa_A(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_HLDa_A(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes);
 
-void ldh_A_HLIa(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_A_HLIa(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes);
 
-void ldh_A_HLDa(uint8_t *instruction, uint8_t *cpu_cycles,
+void ld_A_HLDa(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes);
 
 #endif

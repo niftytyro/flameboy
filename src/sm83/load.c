@@ -115,8 +115,8 @@ void ld_n16a_A(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 3;
 }
 
-void ldh_n16a_A(uint8_t *instruction, uint8_t *cpu_cycles,
-                uint8_t *number_of_bytes) {
+void ldh_n8a_A(uint8_t *instruction, uint8_t *cpu_cycles,
+               uint8_t *number_of_bytes) {
   uint16_t address = 0xff00 + *(instruction + 1);
   uint8_t byte = read_half_register_by_name('A');
 
@@ -151,8 +151,8 @@ void ld_A_r16a(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 1;
 }
 
-void ld_A_n16(uint8_t *instruction, uint8_t *cpu_cycles,
-              uint8_t *number_of_bytes) {
+void ld_A_n16a(uint8_t *instruction, uint8_t *cpu_cycles,
+               uint8_t *number_of_bytes) {
   uint16_t address = *(instruction + 2) * 0x100 + *(instruction + 1);
   uint8_t *byte = read_address(address);
 
@@ -160,6 +160,17 @@ void ld_A_n16(uint8_t *instruction, uint8_t *cpu_cycles,
 
   *cpu_cycles = 4;
   *number_of_bytes = 3;
+}
+
+void ldh_A_n8a(uint8_t *instruction, uint8_t *cpu_cycles,
+               uint8_t *number_of_bytes) {
+  uint16_t address = 0xff00 + *(instruction + 1);
+  uint8_t *byte = read_address(address);
+
+  write_half_register_by_name('A', *byte);
+
+  *cpu_cycles = 3;
+  *number_of_bytes = 2;
 }
 
 void ldh_A_Ca(uint8_t *instruction, uint8_t *cpu_cycles,
@@ -173,8 +184,8 @@ void ldh_A_Ca(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 1;
 }
 
-void ldh_HLIa_A(uint8_t *instruction, uint8_t *cpu_cycles,
-                uint8_t *number_of_bytes) {
+void ld_HLIa_A(uint8_t *instruction, uint8_t *cpu_cycles,
+               uint8_t *number_of_bytes) {
   uint16_t address = read_register_by_name("HL");
   uint8_t byte = read_half_register_by_name('A');
 
@@ -186,8 +197,8 @@ void ldh_HLIa_A(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 1;
 }
 
-void ldh_HLDa_A(uint8_t *instruction, uint8_t *cpu_cycles,
-                uint8_t *number_of_bytes) {
+void ld_HLDa_A(uint8_t *instruction, uint8_t *cpu_cycles,
+               uint8_t *number_of_bytes) {
   uint16_t address = read_register_by_name("HL");
   uint8_t byte = read_half_register_by_name('A');
 
@@ -199,8 +210,8 @@ void ldh_HLDa_A(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 1;
 }
 
-void ldh_A_HLIa(uint8_t *instruction, uint8_t *cpu_cycles,
-                uint8_t *number_of_bytes) {
+void ld_A_HLIa(uint8_t *instruction, uint8_t *cpu_cycles,
+               uint8_t *number_of_bytes) {
   uint16_t address = read_register_by_name("HL");
   uint8_t *byte = read_address(address);
 
@@ -212,8 +223,8 @@ void ldh_A_HLIa(uint8_t *instruction, uint8_t *cpu_cycles,
   *number_of_bytes = 1;
 }
 
-void ldh_A_HLDa(uint8_t *instruction, uint8_t *cpu_cycles,
-                uint8_t *number_of_bytes) {
+void ld_A_HLDa(uint8_t *instruction, uint8_t *cpu_cycles,
+               uint8_t *number_of_bytes) {
   uint16_t address = read_register_by_name("HL");
   uint8_t *byte = read_address(address);
 

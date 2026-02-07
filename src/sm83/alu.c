@@ -4,263 +4,22 @@
 #include <stdlib.h>
 
 #include "../addressing/addressing.h"
+#include "arithmetic.h"
+#include "bit_manipulation.h"
+#include "carry.h"
+#include "interrupts.h"
+#include "jumps.h"
+#include "load.h"
+#include "logic.h"
+#include "misc.h"
 #include "registers.h"
+#include "stack.h"
 
 const int BASE_REGISTER_INDEX = 2;
 
 void boot_cpu() { printf("CPU boot successful\n"); }
 
 int extract_half_register_index(int low) { return low & 0x7; }
-
-void execute_byte_rotation_instruction(uint8_t *instruction,
-                                       uint8_t *cpu_cycles,
-                                       uint8_t *number_of_bytes) {
-  uint8_t accumulator = read_half_register_by_name('A');
-  uint8_t flags = read_half_register_by_name('F');
-
-  uint8_t bit_7 = accumulator / 0x80;
-
-  // rotate A by 1
-  accumulator = accumulator << 1;
-  accumulator += bit_7;
-
-  // update carry flag based on the result
-  flags = flags & (0xef + (bit_7 * 0x10));
-
-  write_register_by_name("AF", accumulator, flags);
-}
-
-void execute_inc_dec_instruction(uint8_t *instruction, uint8_t *cpu_cycles,
-                                 uint8_t *number_of_bytes) {
-  int high = *instruction / 0x10;
-  int low = *instruction % 0x10;
-
-  int register_index = BASE_REGISTER_INDEX + high * 2;
-
-  switch (low) {
-  case 0x3:
-    increment_register(register_index);
-    break;
-  case 0x4: {
-    increment_half_register(register_index);
-    break;
-  }
-  case 0x5:
-    decrement_half_register(register_index);
-    break;
-  case 0xb:
-    decrement_register(register_index);
-    break;
-  case 0xc:
-    increment_half_register(register_index + 1);
-    break;
-  case 0xd:
-    decrement_half_register(register_index + 1);
-    break;
-  }
-}
-
-void execute_8_bit_load_value_instruction(uint8_t *instruction,
-                                          uint8_t *cpu_cycles,
-                                          uint8_t *number_of_bytes) {
-  int high = *instruction / 0x10;
-
-  int register_index = BASE_REGISTER_INDEX + high * 2;
-  uint8_t value = *(instruction + 1);
-
-  write_half_register(register_index, value);
-  *cpu_cycles = 2;
-  *number_of_bytes = 2;
-}
-
-void execute_8_bit_load_from_register_instruction(uint8_t *instruction,
-                                                  uint8_t *cpu_cycles,
-                                                  uint8_t *number_of_bytes) {
-  int low = *instruction % 0x10;
-
-  int register_index = extract_half_register_index(low),
-      target_register_index = (*instruction % 0x40) / 0x8;
-
-  if (target_register_index < 0x6) {
-    if (register_index < 0x6) {
-      write_half_register(
-          BASE_REGISTER_INDEX + target_register_index,
-          read_half_register(BASE_REGISTER_INDEX + register_index));
-    } else if (register_index == 0x6) {
-      // TODO fix the [HL] value reference
-      write_half_register(BASE_REGISTER_INDEX + target_register_index, -1);
-      *cpu_cycles = 2;
-    } else if (register_index == 0x7) {
-      write_half_register(BASE_REGISTER_INDEX + target_register_index,
-                          read_half_register_by_name('A'));
-    }
-  } else if (target_register_index == 0x6) {
-    // TODO implement [HL] value reference && also implement 0x76 HALT
-  } else {
-    if (register_index < 0x6) {
-      write_half_register_by_name(
-          'A', read_half_register(BASE_REGISTER_INDEX + register_index));
-    } else if (register_index == 0x6) {
-      // TODO fix the [HL] value reference
-      write_half_register_by_name('A', -1);
-      *cpu_cycles = 2;
-    } else if (register_index == 0x7) {
-      uint16_t address = read_register_by_name("HL");
-      uint8_t *byte = read_address(address);
-      write_half_register_by_name('A', *byte);
-    }
-  }
-  return;
-}
-
-void execute_16_bit_load_instruction(uint8_t *instruction, uint8_t *cpu_cycles,
-                                     uint8_t *number_of_bytes) {
-  int high = *instruction / 0x10;
-  int low = *instruction % 0x10;
-
-  int register_index = BASE_REGISTER_INDEX + high * 2;
-  if (low == 0x1) {
-    write_register(register_index, *(instruction + 1), *(instruction + 2));
-
-    *cpu_cycles = 3;
-    *number_of_bytes = 3;
-  } else if (low == 0x2) {
-    uint16_t address = read_register(register_index);
-    write_address(address, read_half_register_by_name('A'));
-
-    if (high == 0x2) {
-      increment_register_by_name("HL");
-    } else if (high == 0x3) {
-      decrement_register_by_name("HL");
-    }
-
-    *cpu_cycles = 2;
-  }
-}
-
-void execute_load_instruction(uint8_t *instruction, uint8_t *cpu_cycles,
-                              uint8_t *number_of_bytes) {
-  int high = *instruction / 0x10;
-  int low = *instruction % 0x10;
-
-  if (high < 0x4) {
-    if (low < 0x3) {
-      execute_16_bit_load_instruction(instruction, cpu_cycles, number_of_bytes);
-    }
-    if (low == 0x6) {
-      execute_8_bit_load_value_instruction(instruction, cpu_cycles,
-                                           number_of_bytes);
-    }
-  } else if (high < 0x8) {
-    execute_8_bit_load_from_register_instruction(instruction, cpu_cycles,
-                                                 number_of_bytes);
-  }
-}
-
-void execute_8_bit_arithmetic_instruction(uint8_t *instruction,
-                                          uint8_t *cpu_cycles,
-                                          uint8_t *number_of_bytes) {
-  int high = *instruction / 0x10;
-  int low = *instruction % 0x10;
-
-  uint8_t accumulator = read_half_register_by_name('A'),
-          flags = read_half_register_by_name('F');
-  bool should_carry = false;
-  uint8_t carry, operand;
-  int16_t result = accumulator;
-
-  if (low > 0x7) {
-    should_carry = true;
-  }
-
-  if (should_carry && (flags & 0x10) > 0) {
-    carry = 1;
-  }
-
-  if (high < 0xa) {
-    int register_index = extract_half_register_index(low);
-    if (register_index < 6) {
-      operand = read_half_register(BASE_REGISTER_INDEX + register_index);
-    } else if (register_index == 6) {
-      // TODO fix the [HL] value reference
-      operand = -1;
-      *cpu_cycles = 2;
-    } else if (register_index == 7) {
-      operand = read_half_register('A');
-    }
-  } else {
-    if (low != 0x6 && low != 0xe) {
-      return;
-    }
-    operand = *(instruction + 1);
-    *number_of_bytes = 2;
-    *cpu_cycles = 2;
-  }
-
-  if (high == 0x8 || high == 0xc) {
-    result = accumulator + operand + carry;
-    update_flags(0, accumulator, result, operand + carry);
-  } else if (high == 0x9 || high == 0xd) {
-    result = accumulator - operand - carry;
-    update_flags(1, accumulator, result, operand + carry);
-  }
-
-  write_half_register_by_name('A', result);
-}
-
-void execute_8_bit_logical_instruction(uint8_t *instruction,
-                                       uint8_t *cpu_cycles,
-                                       uint8_t *number_of_bytes) {
-  int high = *instruction / 0x10;
-  int low = *instruction % 0x10;
-
-  uint8_t accumulator = read_half_register_by_name('A'),
-          flags = read_half_register_by_name('F');
-  int operand;
-  int16_t result = accumulator;
-
-  if (high < 0xe) {
-    int register_index = extract_half_register_index(low);
-    if (register_index < 6) {
-      operand = read_half_register(BASE_REGISTER_INDEX + register_index);
-    } else if (register_index == 6) {
-      // TODO fix the [HL] value reference
-      *cpu_cycles = 2;
-    } else if (register_index == 7) {
-      operand = read_half_register(0);
-    }
-  } else {
-    if (low != 0x6 && low != 0xe) {
-      return;
-    }
-    operand = *(instruction + 1);
-    *number_of_bytes = 2;
-    *cpu_cycles = 2;
-  }
-
-  flags = 0;
-  if (high == 0xa || high == 0xe) {
-    if (low < 0x8) {
-      result = accumulator & operand;
-      write_flags(result == 0, 0, 1, 0);
-    } else {
-      result = accumulator ^ operand;
-      write_flags(result == 0, 0, 0, 0);
-    }
-  } else if ((high == 0xb || high == 0xf) && low < 0x8) {
-    result = accumulator | operand;
-    write_flags(result == 0, 0, 0, 0);
-  }
-
-  write_half_register_by_name('A', result);
-
-  if ((high == 0xb || high == 0xf) && low >= 0x8) {
-    result = accumulator - operand;
-    update_flags(1, accumulator, result, operand);
-  }
-
-  write_half_register_by_name('F', flags);
-}
 
 int execute() {
   printf("---------------------------------------------------------------------"
@@ -274,6 +33,8 @@ int execute() {
   int low = *instruction % 0x0f;
   // CPU_CYCLES, NUMBER_OF_BYTES
   uint8_t instruction_metadata[2] = {1, 1};
+  uint8_t *cpu_cycles = instruction_metadata;
+  uint8_t *number_of_bytes = instruction_metadata + 1;
 
   printf("[ALU Context]\n");
   printf("PC: %02x\n", PC);
@@ -283,79 +44,432 @@ int execute() {
   switch (high) {
   case 0x0:
     if (low == 0x0) {
-      // NOP
-      break;
-    }
-    if (low < 0x3 || low == 0x6) {
-      execute_load_instruction(instruction, instruction_metadata,
-                               instruction_metadata + 1);
-      break;
-    }
-    if (low < 0x6) {
-      execute_inc_dec_instruction(instruction, instruction_metadata,
-                                  instruction_metadata + 1);
+      nop(instruction, cpu_cycles, number_of_bytes);
       break;
     }
     if (low == 0x7) {
-      execute_byte_rotation_instruction(instruction, instruction_metadata,
-                                        instruction_metadata + 1);
+      rlca(instruction, cpu_cycles, number_of_bytes);
+    }
+    if (low == 0x8) {
+      ld_n16a_SP(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xf) {
+      rrca(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+  case 0x1:
+    if (low == 0x0) {
+      stop(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x2) {
+      ld_r16a_A(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x7) {
+      rla(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x8) {
+      jr_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xa) {
+      ld_A_r16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xf) {
+      rra(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+  case 0x2:
+    if (low == 0x0) {
+      jr_NZ_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x2) {
+      ld_HLIa_A(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x4) {
+      inc_r8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x5) {
+      dec_r8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x6) {
+      ld_r8_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x7) {
+      daa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xa) {
+      ld_A_HLIa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xe) {
+      cpl(instruction, cpu_cycles, number_of_bytes);
+      break;
     }
   case 0x3:
+    if (low == 0x0) {
+      jr_NC_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x1) {
+      ld_r16_n16(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x2) {
+      ld_HLDa_A(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x3) {
+      inc_r16(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x4) {
+      inc_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x5) {
+      dec_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x6) {
+      ld_HLa_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x7) {
+      scf(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x8) {
+      jr_Z_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x9) {
+      add_HL_r16(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xa) {
+      ld_A_HLDa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xb) {
+      dec_r16(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xc) {
+      inc_r8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xd) {
+      dec_r8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xe) {
+      ld_r8_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xf) {
+      ccf(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
   case 0x4:
   case 0x5:
   case 0x6:
+    if (low == 0x6 || low == 0xe) {
+      ld_r8_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
   case 0x7:
-    execute_load_instruction(instruction, instruction_metadata,
-                             instruction_metadata + 1);
+    if (low == 0x6) {
+      halt(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xe) {
+      ld_r8_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    ld_r8_r8(instruction, instruction_metadata, instruction_metadata + 1);
     break;
   case 0x8:
+    if (low == 0x6) {
+      add_A_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low < 0x8) {
+      add_A_r8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xe) {
+      adc_A_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    adc_A_r8(instruction, cpu_cycles, number_of_bytes);
+    break;
   case 0x9:
-
-    execute_8_bit_arithmetic_instruction(instruction, instruction_metadata,
-                                         instruction_metadata + 1);
+    if (low == 0x6) {
+      sub_A_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low < 0x8) {
+      sub_A_r8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xe) {
+      sbc_A_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    sbc_A_r8(instruction, cpu_cycles, number_of_bytes);
     break;
   case 0xa:
+    if (low == 0x6) {
+      and_A_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low < 0x8) {
+      and_A_r8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xe) {
+      xor_A_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    xor_A_r8(instruction, cpu_cycles, number_of_bytes);
+    break;
   case 0xb:
-    execute_8_bit_logical_instruction(instruction, instruction_metadata,
-                                      instruction_metadata + 1);
+    if (low == 0x6) {
+      or_A_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low < 0x8) {
+      or_A_r8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xe) {
+      cp_A_HLa(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    cp_A_r8(instruction, cpu_cycles, number_of_bytes);
     break;
   case 0xc:
-    if ((low == 0x6) || (low == 0xe)) {
-      execute_8_bit_arithmetic_instruction(instruction, instruction_metadata,
-                                           instruction_metadata + 1);
+    if (low == 0x0) {
+      ret_NZ(instruction, cpu_cycles, number_of_bytes);
       break;
     }
-  // fall through
+    if (low == 0x2) {
+      jp_NZ_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x3) {
+      jp_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x4) {
+      call_NZ_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x6) {
+      add_A_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x8) {
+      ret_Z(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x9) {
+      ret(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xa) {
+      jp_Z_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xb) {
+      // TODO bitwise ops here
+      break;
+    }
+    if (low == 0xc) {
+      call_Z_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xd) {
+      call_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xe) {
+      adc_A_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    break;
   case 0xd:
-    if ((low == 0x6) || (low == 0xe)) {
-      execute_8_bit_arithmetic_instruction(instruction, instruction_metadata,
-                                           instruction_metadata + 1);
+    if (low == 0x0) {
+      ret_NC(instruction, cpu_cycles, number_of_bytes);
       break;
     }
-  // fall through
+    if (low == 0x2) {
+      jp_NC_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x3) {
+      break;
+    }
+    if (low == 0x4) {
+      call_NC_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x6) {
+      sub_A_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x8) {
+      ret_C(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x9) {
+      reti(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xa) {
+      jp_C_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xb) {
+      break;
+    }
+    if (low == 0xc) {
+      call_C_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xd) {
+      break;
+    }
+    if (low == 0xe) {
+      sbc_A_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    break;
   case 0xe:
-    if ((low == 0x6) || (low == 0xe)) {
-      execute_8_bit_logical_instruction(instruction, instruction_metadata,
-                                        instruction_metadata + 1);
+    if (low == 0x0) {
+      ldh_n8a_A(instruction, cpu_cycles, number_of_bytes);
       break;
     }
-  // fall through
+    if (low == 0x2) {
+      ldh_Ca_A(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x3) {
+      break;
+    }
+    if (low == 0x4) {
+      break;
+    }
+    if (low == 0x6) {
+      and_A_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x8) {
+      add_SP_e8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x9) {
+      jp_HL(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xa) {
+      ld_n16a_A(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xb) {
+      break;
+    }
+    if (low == 0xc) {
+      break;
+    }
+    if (low == 0xd) {
+      break;
+    }
+    if (low == 0xe) {
+      xor_A_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
   case 0xf:
-    if ((low == 0x6) || (low == 0xe)) {
-      execute_8_bit_logical_instruction(instruction, instruction_metadata,
-                                        instruction_metadata + 1);
+    if (low == 0x0) {
+      ldh_A_n8a(instruction, cpu_cycles, number_of_bytes);
       break;
     }
-
+    if (low == 0x1) {
+      pop_r16(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x2) {
+      ldh_A_Ca(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x3) {
+      di(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x4) {
+      break;
+    }
+    if (low == 0x5) {
+      push_r16(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x6) {
+      or_A_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x7) {
+      rst(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x8) {
+      ld_HL_SPe8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0x9) {
+      ld_SP_HL(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xa) {
+      ld_A_n16a(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xb) {
+      ei(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xc) {
+      break;
+    }
+    if (low == 0xd) {
+      break;
+    }
+    if (low == 0xe) {
+      cp_A_n8(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low == 0xf) {
+      rst(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
   default:
     break;
   }
 
-  uint8_t cpu_cycles = instruction_metadata[0];
-  uint8_t number_of_bytes = instruction_metadata[1];
-
-  PC += number_of_bytes;
+  // TODO don't update PC if updated by instruction already no?
+  PC = read_register_by_name("PC");
+  PC += *number_of_bytes;
   write_register_by_name("PC", PC / 0x100, PC % 0x100);
 
-  return cpu_cycles;
+  return *cpu_cycles;
 }
