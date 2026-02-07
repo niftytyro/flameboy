@@ -40,9 +40,7 @@ void ld_r16_n16(uint8_t *instruction, uint8_t *cpu_cycles,
   int register_index = extract_register_index_r8(*instruction, 0);
   uint8_t byte1 = *(instruction + 2), byte2 = *(instruction + 1);
 
-  if (register_index != 0x6) {
-    write_register(register_index, byte1, byte2);
-  }
+  write_register(register_index, byte1, byte2);
 
   printf("ld %d 0x%02x%02x\n", register_index, byte1, byte2);
 
@@ -97,8 +95,7 @@ void ld_r8_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void ld_r16a_A(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
-  int low = *instruction & 0xf;
-  int register_index = extract_register_index(low, 0);
+  int register_index = extract_register_index(*instruction, 0);
 
   uint16_t address = read_register(register_index);
   uint8_t byte = read_half_register_by_name('A');
@@ -145,8 +142,7 @@ void ldh_Ca_A(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void ld_A_r16a(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
-  int low = *instruction & 0xf;
-  int register_index = extract_register_index(low, 0);
+  int register_index = extract_register_index(*instruction, 0);
 
   uint16_t address = read_register(register_index);
   uint8_t *byte = read_address(address);

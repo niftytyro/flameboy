@@ -149,8 +149,6 @@ int execute() {
   bool should_increment_PC = true;
   uint8_t *instruction = read_address(PC);
 
-  printf("Executing 0x%02x\n", *instruction);
-
   int high = *instruction / 0x10;
   int low = *instruction % 0x10;
 

@@ -51,10 +51,14 @@ int extract_half_register_index_for_grouped_ins(int instruction) {
 int extract_register_index(uint8_t instruction, uint8_t base) {
   uint8_t high = instruction / 0x10;
 
-  int i = high % base;
-  i += BASE_REGISTER_INDEX;
+  int i = high ;
+  if (base != 0) {
+    i = high % base;
+  }
 
-  printf("Register Index: %d\n", i);
+  i*=2;
+  i+=BASE_REGISTER_INDEX;
+
 
   return i;
 }

@@ -104,8 +104,7 @@ void add_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void add_HL_r16(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes) {
-  int low = *instruction & 0xf;
-  uint8_t register_index = extract_register_index(low, 0);
+  uint8_t register_index = extract_register_index(*instruction, 0);
 
   uint16_t value = read_register_by_name("HL");
   uint16_t operand = read_register(register_index);
@@ -168,8 +167,7 @@ void cp_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void dec_r8(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_register_index_r8(low, 0);
+  uint8_t register_index = extract_register_index_r8(*instruction, 0);
 
   uint8_t value = read_half_register(register_index);
   uint8_t result = value - 1;
@@ -200,8 +198,7 @@ void dec_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void dec_r16(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_register_index(low, 0);
+  uint8_t register_index = extract_register_index(*instruction, 0);
 
   uint8_t value = read_register(register_index);
   uint8_t result = value - 1;
@@ -245,8 +242,7 @@ void inc_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void inc_r16(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_register_index(low, 0);
+  uint8_t register_index = extract_register_index(*instruction, 0);
 
   uint8_t value = read_register(register_index);
   uint8_t result = value + 1;
