@@ -12,6 +12,7 @@ Or more like, TODOs
 - [x] Implement core addressing mechanism
 - [x] Implement ROM loading
 - [ ] Implement all CPU instructions 
+- [ ] Interrupt handling
 - [ ] Implement banking for various components
 - [ ] Implement boot ROM execution 
 - [ ] Implement the PPU
