@@ -50,7 +50,7 @@ uint8_t *read_address(uint16_t address) {
 }
 
 void write_address(uint16_t address, uint8_t byte) {
-  printf("Reading address: 0x%04x\n", address);
+  printf("Writing 0x%02x to address 0x%04x\n", byte, address);
   if (address < 0x0100) {
     /* uint8_t boot_rom_flag = read_IO_register(0x50); */
     /* if (boot_rom_flag == 0) { */

@@ -2,8 +2,12 @@
 #define CPU_REGISTERS
 
 #include <stdint.h>
+#include <stdbool.h>
 
 extern const int BASE_REGISTER_INDEX;
+
+
+void initialize_registers();
 
 uint8_t read_half_register(int i);
 uint8_t read_half_register_by_name(char name);
@@ -29,7 +33,6 @@ uint8_t decrement_half_register_by_name(char name);
 
 uint8_t read_flag(char name);
 uint8_t write_flags(bool z, bool n, bool h, bool c);
-uint8_t update_flags(bool negative, uint16_t old_value, uint16_t new_value, uint16_t operand);
 
 #endif
 

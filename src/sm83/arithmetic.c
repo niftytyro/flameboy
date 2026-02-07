@@ -1,15 +1,17 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "../addressing/addressing.h"
+#include "../utils.h"
 #include "arithmetic.h"
 #include "registers.h"
 #include "utils.h"
 
 void _add_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes, bool should_carry) {
-  int low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t operand = read_half_register(register_index);
@@ -31,6 +33,7 @@ void _add_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void _add_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes, bool should_carry) {
+  UNUSED(instruction);
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t operand = *read_address(read_register_by_name("HL"));
   uint8_t carry = read_half_register_by_name('C');
@@ -102,7 +105,7 @@ void add_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 void add_HL_r16(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes) {
   int low = *instruction & 0xf;
-  uint8_t register_index = extract_register_index(low);
+  uint8_t register_index = extract_register_index(low, 0);
 
   uint16_t value = read_register_by_name("HL");
   uint16_t operand = read_register(register_index);
@@ -120,8 +123,8 @@ void add_HL_r16(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void cp_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t operand = read_half_register(register_index);
@@ -136,6 +139,7 @@ void cp_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void cp_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t accumulator = read_half_register_by_name('A');
@@ -165,7 +169,7 @@ void cp_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 void dec_r8(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
   uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index = extract_register_index_r8(low, 0);
 
   uint8_t value = read_half_register(register_index);
   uint8_t result = value - 1;
@@ -180,6 +184,7 @@ void dec_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void dec_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
@@ -196,7 +201,7 @@ void dec_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 void dec_r16(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
   uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_register_index(low);
+  uint8_t register_index = extract_register_index(low, 0);
 
   uint8_t value = read_register(register_index);
   uint8_t result = value - 1;
@@ -209,8 +214,7 @@ void dec_r16(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void inc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index = extract_register_index_r8(*instruction, 0);
 
   uint8_t value = read_half_register(register_index);
   uint8_t result = value + 1;
@@ -225,6 +229,7 @@ void inc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void inc_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
@@ -241,7 +246,7 @@ void inc_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 void inc_r16(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
   uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_register_index(low);
+  uint8_t register_index = extract_register_index(low, 0);
 
   uint8_t value = read_register(register_index);
   uint8_t result = value + 1;
@@ -254,8 +259,8 @@ void inc_r16(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void _sub_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes, bool should_carry) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t operand = read_half_register(register_index);
@@ -275,6 +280,7 @@ void _sub_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void _sub_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes, bool should_carry) {
+  UNUSED(instruction);
   uint16_t address = read_register_by_name("HL");
 
   uint8_t accumulator = read_half_register_by_name('A');
@@ -282,7 +288,7 @@ void _sub_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
   uint8_t carry = read_flag('C');
 
   uint8_t result = accumulator - *operand;
-  if (carry) {
+  if (should_carry) {
     result -= carry;
   }
 

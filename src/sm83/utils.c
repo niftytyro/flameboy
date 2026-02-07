@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "registers.h"
 
@@ -36,19 +37,47 @@ bool is_16bit_carry(uint16_t old_value, uint16_t new_value, bool subtraction) {
   return new_value < old_value;
 }
 
-int extract_half_register_index(int nibble) {
-  int i = nibble % 0x8;
+int extract_half_register_index_for_grouped_ins(int instruction) {
+  uint8_t low = instruction & 0xf;
+  int i = low % 0x8;
   i += BASE_REGISTER_INDEX;
-  i %= 0x8;
+  i %= 0x9;
+
+  printf("Register Index (half): %d\n", i);
 
   return i;
 }
 
-int extract_register_index(int nibble) {
-  // TODO implement full register index
-  int i = nibble % 0x8;
+int extract_register_index(uint8_t instruction, uint8_t base) {
+  uint8_t high = instruction / 0x10;
+
+  int i = high % base;
   i += BASE_REGISTER_INDEX;
-  i %= 0x8;
+
+  printf("Register Index: %d\n", i);
+
+  return i;
+}
+
+int extract_register_index_r8(uint8_t instruction, uint8_t base) {
+  uint8_t high = instruction / 0x10;
+  uint8_t low = instruction % 0x10;
+
+  int i = high;
+  if (base != 0) {
+    i = high % base;
+  }
+
+  i *= 2;
+  i += BASE_REGISTER_INDEX;
+
+  if (low == 0xe) {
+    i++;
+  }
+
+  i %= 0x9;
+
+  printf("Register Index (r8): %d\n", i);
 
   return i;
 }

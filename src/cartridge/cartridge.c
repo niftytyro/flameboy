@@ -63,7 +63,6 @@ void print_rom_contents() {
 
 uint8_t *read_rom(uint16_t address) {
   if (address < 0x4000) {
-    printf("ROM_BANK0[$%04x]: 0x%02x\n", address, ROM_BANK0[address]);
     return &ROM_BANK0[address];
   }
   // TODO implement banked ROM

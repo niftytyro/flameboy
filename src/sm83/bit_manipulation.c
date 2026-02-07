@@ -2,6 +2,8 @@
 #include <stdint.h>
 
 #include "../addressing/addressing.h"
+#include "../utils.h"
+#include "jumps.h"
 #include "registers.h"
 #include "stack.h"
 #include "utils.h"
@@ -12,10 +14,9 @@ uint8_t get_bit_index(uint8_t *instruction) {
 
 void bit_u3_r8(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-
   uint8_t bit_index = get_bit_index(instruction);
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t value = read_half_register(register_index);
 
@@ -44,10 +45,10 @@ void bit_u3_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void res_u3_r8(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-
   uint8_t bit_index = get_bit_index(instruction);
-  uint8_t register_index = extract_half_register_index(low);
+
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t value = read_half_register(register_index);
 
@@ -76,10 +77,9 @@ void res_u3_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void set_u3_r8(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-
   uint8_t bit_index = get_bit_index(instruction);
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t value = read_half_register(register_index);
 
@@ -108,8 +108,8 @@ void set_u3_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void rl_r8(uint8_t *instruction, uint8_t *cpu_cycles,
            uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
   bool carry = read_flag('c');
   uint8_t value = read_half_register(register_index);
 
@@ -126,6 +126,7 @@ void rl_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void rl_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   bool carry = read_flag('c');
   uint16_t value = read_register_by_name("HL");
 
@@ -141,6 +142,7 @@ void rl_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 }
 
 void rla(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   bool carry = read_flag('c');
   uint8_t value = read_half_register_by_name('A');
 
@@ -157,8 +159,8 @@ void rla(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
 
 void rlc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
   bool carry = read_flag('c');
   uint8_t value = read_half_register(register_index);
 
@@ -175,6 +177,7 @@ void rlc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void rlc_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   bool carry = read_flag('c');
   uint16_t value = read_register_by_name("HL");
 
@@ -190,6 +193,7 @@ void rlc_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 }
 
 void rlca(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   bool carry = read_flag('c');
   uint8_t value = read_half_register_by_name('A');
 
@@ -206,8 +210,8 @@ void rlca(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
 
 void rr_r8(uint8_t *instruction, uint8_t *cpu_cycles,
            uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
   bool carry = read_flag('c');
   uint8_t value = read_half_register(register_index);
 
@@ -224,6 +228,7 @@ void rr_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void rr_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   bool carry = read_flag('c');
   uint16_t value = read_register_by_name("HL");
 
@@ -239,6 +244,7 @@ void rr_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 }
 
 void rra(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   bool carry = read_flag('c');
   uint8_t value = read_half_register_by_name('A');
 
@@ -255,8 +261,8 @@ void rra(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
 
 void rrc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
   bool carry = read_flag('c');
   uint8_t value = read_half_register(register_index);
 
@@ -273,6 +279,7 @@ void rrc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void rrc_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   bool carry = read_flag('c');
   uint16_t value = read_register_by_name("HL");
 
@@ -288,6 +295,7 @@ void rrc_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 }
 
 void rrca(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   bool carry = read_flag('c');
   uint8_t value = read_half_register_by_name('A');
 
@@ -304,8 +312,8 @@ void rrca(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
 
 void sla_r8(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t value = read_half_register(register_index);
   uint8_t bit_7 = value & 0x80;
@@ -320,6 +328,7 @@ void sla_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void sla_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
@@ -336,8 +345,8 @@ void sla_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void sra_r8(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t value = read_half_register(register_index);
   uint8_t bit_7 = value & 0x80;
@@ -353,6 +362,7 @@ void sra_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void sra_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
@@ -370,8 +380,8 @@ void sra_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void srl_r8(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t value = read_half_register(register_index);
   uint8_t bit_0 = value & 0x01;
@@ -386,6 +396,7 @@ void srl_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void srl_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
@@ -402,8 +413,8 @@ void srl_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void swap_r8(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t value = read_half_register(register_index);
   uint8_t high_v = (value & 0xf0) >> 4;
@@ -420,6 +431,7 @@ void swap_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void swap_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
@@ -433,65 +445,4 @@ void swap_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
   *cpu_cycles = 4;
   *number_of_bytes = 2;
-}
-
-void call_n16(uint8_t *instruction, uint8_t *cpu_cycles,
-              uint8_t *number_of_bytes) {
-  uint16_t address = read_register_by_name("PC");
-  uint16_t target_address = *(instruction + 2) * 0x100 + *(instruction + 1);
-
-  push_to_stack(address);
-
-  write_register_by_name("PC", target_address / 0x100, target_address % 0x100);
-
-  *cpu_cycles = 6;
-  *number_of_bytes = 3;
-}
-
-void call_NZ_n16(uint8_t *instruction, uint8_t *cpu_cycles,
-                 uint8_t *number_of_bytes) {
-  bool is_zero = read_flag('Z');
-  if (!is_zero) {
-    call_n16(instruction, cpu_cycles, number_of_bytes);
-  } else {
-    *cpu_cycles = 3;
-  }
-
-  *number_of_bytes = 3;
-}
-
-void call_Z_n16(uint8_t *instruction, uint8_t *cpu_cycles,
-                uint8_t *number_of_bytes) {
-  bool is_zero = read_flag('Z');
-  if (is_zero) {
-    call_n16(instruction, cpu_cycles, number_of_bytes);
-  } else {
-    *cpu_cycles = 3;
-  }
-
-  *number_of_bytes = 3;
-}
-
-void call_NC_n16(uint8_t *instruction, uint8_t *cpu_cycles,
-                 uint8_t *number_of_bytes) {
-  bool is_carry = read_flag('C');
-  if (!is_carry) {
-    call_n16(instruction, cpu_cycles, number_of_bytes);
-  } else {
-    *cpu_cycles = 3;
-  }
-
-  *number_of_bytes = 3;
-}
-
-void call_C_n16(uint8_t *instruction, uint8_t *cpu_cycles,
-                uint8_t *number_of_bytes) {
-  bool is_carry = read_flag('C');
-  if (is_carry) {
-    call_n16(instruction, cpu_cycles, number_of_bytes);
-  } else {
-    *cpu_cycles = 3;
-  }
-
-  *number_of_bytes = 3;
 }

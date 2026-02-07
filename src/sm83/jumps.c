@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "../utils.h"
 #include "registers.h"
 #include "stack.h"
 
@@ -67,6 +68,7 @@ void call_C_n16a(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void jp_HL(uint8_t *instruction, uint8_t *cpu_cycles,
            uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint16_t address = read_register_by_name("HL");
 
   write_register_by_name("PC", address / 0x100, address % 0x100);
@@ -195,6 +197,7 @@ void jr_C_n16a(uint8_t *instruction, uint8_t *cpu_cycles,
 }
 
 void ret(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   write_register_by_name("PC", read_half_register_by_name('S'),
                          read_half_register_by_name('P'));
 
@@ -256,6 +259,9 @@ void ret_C(uint8_t *instruction, uint8_t *cpu_cycles,
 }
 
 void reti(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
+  UNUSED(instruction);
+  UNUSED(cpu_cycles);
+  UNUSED(number_of_bytes);
   // TODO implement
 }
 

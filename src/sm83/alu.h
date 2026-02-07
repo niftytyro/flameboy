@@ -4,4 +4,6 @@
 void boot_cpu();
 int execute();
 
+void print_cpu_state();
+
 #endif

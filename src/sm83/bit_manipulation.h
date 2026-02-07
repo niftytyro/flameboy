@@ -38,9 +38,4 @@ void srl_HLa(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes
 void swap_r8(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes);
 void swap_HLa(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes);
 
-void call_n16(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes);
-void call_NZ_n16(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes);
-void call_Z_n16(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes);
-void call_NC_n16(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes);
-void call_C_n16(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes);
 #endif

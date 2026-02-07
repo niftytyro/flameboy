@@ -15,11 +15,20 @@
 #include "registers.h"
 #include "stack.h"
 
-const int BASE_REGISTER_INDEX = 2;
+void boot_cpu() {
+  initialize_registers();
+  printf("CPU boot successful\n");
+}
 
-void boot_cpu() { printf("CPU boot successful\n"); }
-
-int extract_half_register_index(int low) { return low & 0x7; }
+void print_cpu_state() {
+  printf("------------------CPU State------------------\n");
+  printf("AF: 0x%04x\n", read_register_by_name("AF"));
+  printf("BC: 0x%04x\n", read_register_by_name("BC"));
+  printf("DE: 0x%04x\n", read_register_by_name("DE"));
+  printf("HL: 0x%04x\n", read_register_by_name("HL"));
+  printf("SP: 0x%04x\n", read_register_by_name("SP"));
+  printf("PC: 0x%04x\n", read_register_by_name("PC"));
+}
 
 void execute_cb_prefixed_instructions(uint8_t *instruction, uint8_t *cpu_cycles,
                                       uint8_t *number_of_bytes) {
@@ -41,6 +50,7 @@ void execute_cb_prefixed_instructions(uint8_t *instruction, uint8_t *cpu_cycles,
     }
     rrc_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0x1:
     if (low == 0x6) {
       rl_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -55,6 +65,7 @@ void execute_cb_prefixed_instructions(uint8_t *instruction, uint8_t *cpu_cycles,
     }
     rr_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0x2:
     if (low == 0x6) {
       sla_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -69,6 +80,7 @@ void execute_cb_prefixed_instructions(uint8_t *instruction, uint8_t *cpu_cycles,
     }
     sla_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0x3:
     if (low == 0x6) {
       swap_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -83,9 +95,13 @@ void execute_cb_prefixed_instructions(uint8_t *instruction, uint8_t *cpu_cycles,
     }
     srl_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0x4:
+  // fall through
   case 0x5:
+  // fall through
   case 0x6:
+  // fall through
   case 0x7:
     if (low == 0x6 || low == 0xe) {
       bit_u3_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -93,9 +109,13 @@ void execute_cb_prefixed_instructions(uint8_t *instruction, uint8_t *cpu_cycles,
     }
     bit_u3_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0x8:
+  // fall through
   case 0x9:
+  // fall through
   case 0xa:
+  // fall through
   case 0xb:
     if (low == 0x6 || low == 0xe) {
       res_u3_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -103,9 +123,13 @@ void execute_cb_prefixed_instructions(uint8_t *instruction, uint8_t *cpu_cycles,
     }
     res_u3_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0xc:
+  // fall through
   case 0xd:
+  // fall through
   case 0xe:
+  // fall through
   case 0xf:
     if (low == 0x6 || low == 0xe) {
       set_u3_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -119,24 +143,21 @@ void execute_cb_prefixed_instructions(uint8_t *instruction, uint8_t *cpu_cycles,
 }
 
 int execute() {
-  printf("---------------------------------------------------------------------"
-         "---------CPU "
-         "Cycle-------------------------------------------------------"
-         "-----------------------\n");
+  printf("------------------------\n");
+  print_cpu_state();
   uint16_t PC = read_register_by_name("PC");
+  bool should_increment_PC = true;
   uint8_t *instruction = read_address(PC);
 
-  int high = *instruction & 0xf0;
-  int low = *instruction % 0x0f;
+  printf("Executing 0x%02x\n", *instruction);
+
+  int high = *instruction / 0x10;
+  int low = *instruction % 0x10;
+
   // CPU_CYCLES, NUMBER_OF_BYTES
   uint8_t instruction_metadata[2] = {1, 1};
   uint8_t *cpu_cycles = instruction_metadata;
   uint8_t *number_of_bytes = instruction_metadata + 1;
-
-  printf("[ALU Context]\n");
-  printf("PC: %02x\n", PC);
-  printf("Instruction: 0x%02x\n", *instruction);
-  printf("0000000000000\n");
 
   switch (high) {
   case 0x0:
@@ -155,6 +176,7 @@ int execute() {
       rrca(instruction, cpu_cycles, number_of_bytes);
       break;
     }
+  // fall through
   case 0x1:
     if (low == 0x0) {
       stop(instruction, cpu_cycles, number_of_bytes);
@@ -180,6 +202,7 @@ int execute() {
       rra(instruction, cpu_cycles, number_of_bytes);
       break;
     }
+  // fall through
   case 0x2:
     if (low == 0x0) {
       jr_NZ_n16a(instruction, cpu_cycles, number_of_bytes);
@@ -209,10 +232,11 @@ int execute() {
       ld_A_HLIa(instruction, cpu_cycles, number_of_bytes);
       break;
     }
-    if (low == 0xe) {
+    if (low == 0xf) {
       cpl(instruction, cpu_cycles, number_of_bytes);
       break;
     }
+  // fall through
   case 0x3:
     if (low == 0x0) {
       jr_NC_n16a(instruction, cpu_cycles, number_of_bytes);
@@ -278,16 +302,25 @@ int execute() {
       ccf(instruction, cpu_cycles, number_of_bytes);
       break;
     }
+  // fall through
   case 0x4:
+  // fall through
   case 0x5:
+  // fall through
   case 0x6:
     if (low == 0x6 || low == 0xe) {
       ld_r8_HLa(instruction, cpu_cycles, number_of_bytes);
       break;
     }
+    ld_r8_r8(instruction, instruction_metadata, instruction_metadata + 1);
+    break;
   case 0x7:
     if (low == 0x6) {
       halt(instruction, cpu_cycles, number_of_bytes);
+      break;
+    }
+    if (low < 0x8) {
+      ld_HLa_r8(instruction, cpu_cycles, number_of_bytes);
       break;
     }
     if (low == 0xe) {
@@ -296,6 +329,7 @@ int execute() {
     }
     ld_r8_r8(instruction, instruction_metadata, instruction_metadata + 1);
     break;
+  // fall through
   case 0x8:
     if (low == 0x6) {
       add_A_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -311,6 +345,7 @@ int execute() {
     }
     adc_A_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0x9:
     if (low == 0x6) {
       sub_A_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -326,6 +361,7 @@ int execute() {
     }
     sbc_A_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0xa:
     if (low == 0x6) {
       and_A_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -341,6 +377,7 @@ int execute() {
     }
     xor_A_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0xb:
     if (low == 0x6) {
       or_A_HLa(instruction, cpu_cycles, number_of_bytes);
@@ -356,21 +393,26 @@ int execute() {
     }
     cp_A_r8(instruction, cpu_cycles, number_of_bytes);
     break;
+  // fall through
   case 0xc:
     if (low == 0x0) {
       ret_NZ(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0x2) {
       jp_NZ_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0x3) {
       jp_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0x4) {
       call_NZ_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0x6) {
@@ -379,14 +421,17 @@ int execute() {
     }
     if (low == 0x8) {
       ret_Z(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0x9) {
       ret(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0xa) {
       jp_Z_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0xb) {
@@ -395,10 +440,12 @@ int execute() {
     }
     if (low == 0xc) {
       call_Z_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0xd) {
       call_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0xe) {
@@ -406,13 +453,16 @@ int execute() {
       break;
     }
     break;
+  // fall through
   case 0xd:
     if (low == 0x0) {
       ret_NC(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0x2) {
       jp_NC_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0x3) {
@@ -420,6 +470,7 @@ int execute() {
     }
     if (low == 0x4) {
       call_NC_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0x6) {
@@ -428,14 +479,17 @@ int execute() {
     }
     if (low == 0x8) {
       ret_C(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0x9) {
       reti(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0xa) {
       jp_C_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0xb) {
@@ -443,6 +497,7 @@ int execute() {
     }
     if (low == 0xc) {
       call_C_n16a(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0xd) {
@@ -453,6 +508,7 @@ int execute() {
       break;
     }
     break;
+  // fall through
   case 0xe:
     if (low == 0x0) {
       ldh_n8a_A(instruction, cpu_cycles, number_of_bytes);
@@ -478,6 +534,7 @@ int execute() {
     }
     if (low == 0x9) {
       jp_HL(instruction, cpu_cycles, number_of_bytes);
+      should_increment_PC = false;
       break;
     }
     if (low == 0xa) {
@@ -497,6 +554,7 @@ int execute() {
       xor_A_n8(instruction, cpu_cycles, number_of_bytes);
       break;
     }
+  // fall through
   case 0xf:
     if (low == 0x0) {
       ldh_A_n8a(instruction, cpu_cycles, number_of_bytes);
@@ -545,12 +603,6 @@ int execute() {
       ei(instruction, cpu_cycles, number_of_bytes);
       break;
     }
-    if (low == 0xc) {
-      break;
-    }
-    if (low == 0xd) {
-      break;
-    }
     if (low == 0xe) {
       cp_A_n8(instruction, cpu_cycles, number_of_bytes);
       break;
@@ -563,9 +615,10 @@ int execute() {
     break;
   }
 
-  // TODO don't update PC if updated by instruction already no?
-  PC = read_register_by_name("PC");
-  PC += *number_of_bytes;
+  if (should_increment_PC) {
+    PC = read_register_by_name("PC");
+    PC += *number_of_bytes;
+  }
   write_register_by_name("PC", PC / 0x100, PC % 0x100);
 
   return *cpu_cycles;

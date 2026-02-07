@@ -8,13 +8,15 @@
 
 int main() {
   int status;
-  char *rom_path = "./roms/test.gb";
+  char *rom_path = "./roms/load.gb";
 
   printf("Hello, Flameboy\n");
 
-  printf("Loading the ROM: %s\n", rom_path);
+  printf("Booting CPU: %s\n", rom_path);
 
   boot_cpu();
+
+  printf("Loading the ROM: %s\n", rom_path);
 
   status = load_rom(rom_path);
 
@@ -28,15 +30,21 @@ int main() {
   uint8_t *cartridge_ram_size = read_ram_size();
   printf("Cartridge RAM size: %d\n", *cartridge_ram_size);
 
+  printf("Initializing memory\n");
+
   initialize_memory(*cartridge_ram_size);
 
   /* boot_rom(); */
 
+  printf("Starting execution.\n");
+
   int executions = 0;
-  while (executions < 50) {
+  while (executions < 0x180 - 0x150) {
     execute();
     executions++;
   }
+
+  print_cpu_state();
 
   return 0;
 }

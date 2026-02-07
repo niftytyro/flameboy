@@ -1,8 +1,10 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "../utils.h"
 #include "registers.h"
 
 uint8_t *registers = NULL;
@@ -38,23 +40,6 @@ uint8_t read_flag(char name) {
   }
 
   return -1;
-}
-
-uint8_t update_flags(bool negative, uint16_t old_value, uint16_t new_value,
-                     uint16_t operand) {
-  uint8_t z, n, h, c;
-  z = new_value == 0;
-  n = negative;
-
-  if (negative) {
-    c = new_value < 0x00;
-    h = (old_value >> 3 & 0x1) == 0 && (operand >> 3 & 0x1) == 1;
-  } else {
-    c = new_value > 0xff;
-    h = ((new_value >> 3 & 0x1) == 1) && ((new_value >> 3 & 0x1) == 0);
-  }
-
-  return write_flags(z, n, h, c);
 }
 
 int get_register_index(char name) {
@@ -127,8 +112,8 @@ uint16_t write_register_by_name(char *name, uint8_t byte1, uint8_t byte2) {
   return registers[i] * 0x100 + registers[i + 1];
 }
 
-uint16_t write_register(int index, uint8_t byte1, uint8_t byte2) {
-  int i = get_register_index(index);
+uint16_t write_register(int i, uint8_t byte1, uint8_t byte2) {
+  printf("Writing 0x%02x%02x to %d\n", byte1, byte2, i);
 
   registers[i] = byte1;
   registers[i + 1] = byte2;

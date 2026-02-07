@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "../addressing/addressing.h"
+#include "../utils.h"
 #include "registers.h"
 #include "utils.h"
 
@@ -26,6 +27,7 @@ void add_SP_e8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void dec_SP(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t value = read_register_by_name("SP");
   uint8_t result = value - 1;
 
@@ -37,6 +39,7 @@ void dec_SP(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void inc_SP(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t value = read_register_by_name("SP");
   uint8_t result = value + 1;
 
@@ -48,6 +51,7 @@ void inc_SP(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void add_HL_SP(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint16_t value = read_register_by_name("HL");
   uint16_t operand = read_register_by_name("SP");
 
@@ -91,9 +95,10 @@ void ld_HL_SPe8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void ld_SP_HL(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint16_t value = read_register_by_name("HL");
 
-  write_register_by_name("SP", value & 0xff00, value & 0xff00);
+  write_register_by_name("SP", value / 0x100, value % 0x00ff);
 
   *cpu_cycles = 2;
   *number_of_bytes = 1;
@@ -113,6 +118,7 @@ void ld_n16a_SP(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void pop_AF(uint8_t *instruction, uint8_t *cpu_cycles,
             uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint16_t address = read_register_by_name("SP");
   uint8_t *low = read_address(address);
   uint8_t *high = read_address(address + 1);
@@ -131,7 +137,7 @@ void pop_AF(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void pop_r16(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
-  uint8_t register_index = extract_register_index(*instruction);
+  uint8_t register_index = extract_register_index(*instruction, 0xc);
   uint16_t address = read_register_by_name("SP");
 
   uint8_t *byte1 = read_address(address);
@@ -148,6 +154,7 @@ void pop_r16(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void push_AF(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint16_t address = read_register_by_name("SP");
   uint8_t byte;
 
@@ -165,7 +172,7 @@ void push_AF(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void push_r16(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
-  uint8_t register_index = extract_register_index(*instruction);
+  uint8_t register_index = extract_register_index(*instruction, 0xc);
   uint16_t address = read_register_by_name("SP");
   uint16_t value = read_register(register_index);
   uint8_t byte1 = value / 0x100, byte2 = value % 0x100;

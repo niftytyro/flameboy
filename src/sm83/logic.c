@@ -2,13 +2,14 @@
 #include <stdint.h>
 
 #include "../addressing/addressing.h"
+#include "../utils.h"
 #include "registers.h"
 #include "utils.h"
 
 void and_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t operand = read_half_register(register_index);
@@ -23,6 +24,7 @@ void and_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void and_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t accumulator = read_half_register_by_name('A');
@@ -50,6 +52,8 @@ void and_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 }
 
 void cpl(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
+  UNUSED(instruction);
+
   uint8_t accumulator = read_half_register_by_name('A');
 
   write_half_register_by_name('A', ~accumulator);
@@ -61,8 +65,8 @@ void cpl(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
 
 void or_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t operand = read_half_register(register_index);
@@ -77,6 +81,7 @@ void or_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void or_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t accumulator = read_half_register_by_name('A');
@@ -105,8 +110,8 @@ void or_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void xor_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
-  uint8_t low = *instruction & 0xf;
-  uint8_t register_index = extract_half_register_index(low);
+  uint8_t register_index =
+      extract_half_register_index_for_grouped_ins(*instruction);
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t operand = read_half_register(register_index);
@@ -121,6 +126,7 @@ void xor_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void xor_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
+  UNUSED(instruction);
   uint8_t address = read_register_by_name("HL");
 
   uint8_t accumulator = read_half_register_by_name('A');
