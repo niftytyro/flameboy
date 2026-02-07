@@ -260,7 +260,7 @@ void reti(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
 }
 
 void rst(uint8_t *instruction, uint8_t *cpu_cycles, uint8_t *number_of_bytes) {
-  uint8_t high = *instruction & 0xf0;
+  uint8_t high = *instruction / 0x10;
   uint8_t low = *instruction ^ 0xf;
   uint16_t address = read_register_by_name("PC");
 
