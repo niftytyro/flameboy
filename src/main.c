@@ -6,9 +6,16 @@
 #include "./memory/memory.h"
 #include "./sm83/alu.h"
 
-int main() {
+int main(int argc, char *argv[]) {
   int status;
-  char *rom_path = "./roms/load.gb";
+  char *rom_path;
+  if (argc < 2) {
+    rom_path = "./roms/load-test.gb";
+  } else {
+    rom_path = argv[1];
+  }
+
+  printf("Rom PATH: %s", rom_path);
 
   printf("Hello, Flameboy\n");
 
@@ -39,7 +46,7 @@ int main() {
   printf("Starting execution.\n");
 
   int executions = 0;
-  while (executions < 0x180 - 0x150) {
+  while (executions < 50) {
     execute();
     executions++;
   }
