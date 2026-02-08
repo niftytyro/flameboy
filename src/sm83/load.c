@@ -221,7 +221,7 @@ void ld_A_HLIa(uint8_t *instruction, uint8_t *cpu_cycles,
   uint16_t address = read_register_by_name("HL");
   uint8_t *byte = read_address(address);
 
-  write_half_register('A', *byte);
+  write_half_register_by_name('A', *byte);
 
   increment_register_by_name("HL");
 
@@ -235,7 +235,7 @@ void ld_A_HLDa(uint8_t *instruction, uint8_t *cpu_cycles,
   uint16_t address = read_register_by_name("HL");
   uint8_t *byte = read_address(address);
 
-  write_half_register('A', *byte);
+  write_half_register_by_name('A', *byte);
 
   decrement_register_by_name("HL");
 
