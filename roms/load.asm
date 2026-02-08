@@ -26,16 +26,3 @@ SECTION "", ROM0[$0150]
   ld [hl], 0x20
   ld a, [hl]
 
-  ld bc, 0xe010
-  ld [bc], a
-
-  ld a, 0x40
-  ld [0xe100], a
-
-  ld b, 0xff
-
-  ldh [0x80], a
-  ld c, [0x80]
-
-  ldh [c], a
-  ld a, [bc]

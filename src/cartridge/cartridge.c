@@ -55,6 +55,9 @@ void print_rom_contents() {
   int i = 0;
   while (i < sizeof_ROM_BANK0) {
     printf("%02x ", ROM_BANK0[i]);
+    if (i % 16 == 0) {
+      printf("\n");
+    }
     i++;
   }
   printf("\n======================================================"
