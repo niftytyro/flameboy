@@ -6,8 +6,8 @@
 
 bool is_4bit_carry(uint8_t value, uint8_t operand, uint8_t carry, bool subtraction);
 bool is_8bit_carry(uint8_t value, uint8_t operand, uint8_t carry, bool subtraction);
-bool is_12bit_carry(uint16_t old_value, uint16_t new_value, bool subtraction);
-bool is_16bit_carry(uint16_t old_value, uint16_t new_value, bool subtraction);
+bool is_12bit_carry(uint8_t value, uint8_t operand, uint8_t carry, bool subtraction);
+bool is_16bit_carry(uint8_t value, uint8_t operand, uint8_t carry, bool subtraction);
 
 int extract_half_register_index_for_grouped_ins(int nibble);
 int extract_register_index(uint8_t instruction, uint8_t base);

@@ -116,8 +116,8 @@ void add_HL_r16(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_register_by_name("HL", result / 0x100, result % 0x100);
 
-  write_flags(read_flag('Z'), 0, is_12bit_carry(value, result, 0),
-              is_16bit_carry(value, result, 0));
+  write_flags(read_flag('Z'), 0, is_12bit_carry(value, operand, 0, 0),
+              is_16bit_carry(value, operand, 0, 0));
 
   *cpu_cycles = 2;
   *number_of_bytes = 1;
@@ -142,7 +142,7 @@ void cp_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void cp_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t *operand = read_address(address);

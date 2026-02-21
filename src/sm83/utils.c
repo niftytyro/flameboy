@@ -6,7 +6,7 @@
 
 bool is_4bit_carry(uint8_t value, uint8_t operand, uint8_t carry,
                    bool subtraction) {
-  if (carry == 0 && operand == 0) {
+  if ((carry == 0 && operand == 0) || (carry + operand == value)) {
     return 0;
   }
   if (subtraction) {
@@ -20,7 +20,7 @@ bool is_4bit_carry(uint8_t value, uint8_t operand, uint8_t carry,
 
 bool is_8bit_carry(uint8_t value, uint8_t operand, uint8_t carry,
                    bool subtraction) {
-  if (carry == 0 && operand == 0) {
+  if ((carry == 0 && operand == 0) || (carry + operand == value)) {
     return 0;
   }
   if (subtraction) {
@@ -32,20 +32,33 @@ bool is_8bit_carry(uint8_t value, uint8_t operand, uint8_t carry,
   return (result <= value);
 }
 
-bool is_12bit_carry(uint16_t old_value, uint16_t new_value, bool subtraction) {
-  if (subtraction) {
-    return (new_value & 0x0f00) > (old_value & 0x0f00);
+bool is_12bit_carry(uint8_t value, uint8_t operand, uint8_t carry,
+                    bool subtraction) {
+  if ((carry == 0 && operand == 0) || (carry + operand == value)) {
+    return 0;
   }
 
-  return (new_value & 0x0f00) < (old_value & 0x0f00);
+  if (subtraction) {
+    uint16_t result = value - (operand + carry);
+    return (result & 0x0f00) >= (value & 0x0f00);
+  }
+
+  uint16_t result = value + operand + carry;
+  return (result & 0x0f00) <= (value & 0x0f00);
 }
 
-bool is_16bit_carry(uint16_t old_value, uint16_t new_value, bool subtraction) {
+bool is_16bit_carry(uint8_t value, uint8_t operand, uint8_t carry,
+                    bool subtraction) {
+  if ((carry == 0 && operand == 0) || (carry + operand == value)) {
+    return 0;
+  }
   if (subtraction) {
-    return new_value > old_value;
+    uint16_t result = value - (operand + carry);
+    return (result >= value);
   }
 
-  return new_value < old_value;
+  uint16_t result = value + operand + carry;
+  return (result <= value);
 }
 
 int extract_half_register_index_for_grouped_ins(int instruction) {
