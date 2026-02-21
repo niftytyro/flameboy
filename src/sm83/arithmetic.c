@@ -24,8 +24,9 @@ void _add_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_half_register_by_name('A', result);
 
-  write_flags(result == 0, 0, is_4bit_carry(accumulator, result, 0),
-              is_8bit_carry(accumulator, result, 0));
+  write_flags(result == 0, 0,
+              is_4bit_carry(accumulator, operand, should_carry && carry, 0),
+              is_8bit_carry(accumulator, operand, should_carry && carry, 0));
 
   *cpu_cycles = 1;
   *number_of_bytes = 1;
@@ -36,7 +37,7 @@ void _add_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
   UNUSED(instruction);
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t operand = *read_address(read_register_by_name("HL"));
-  uint8_t carry = read_half_register_by_name('C');
+  uint8_t carry = read_flag('C');
 
   uint8_t result = accumulator + operand;
   if (should_carry) {
@@ -45,8 +46,9 @@ void _add_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_half_register_by_name('A', result);
 
-  write_flags(result == 0, 0, is_4bit_carry(accumulator, result, 0),
-              is_8bit_carry(accumulator, result, 0));
+  write_flags(result == 0, 0,
+              is_4bit_carry(accumulator, operand, should_carry && carry, 0),
+              is_8bit_carry(accumulator, operand, should_carry && carry, 0));
 
   *cpu_cycles = 2;
   *number_of_bytes = 1;
@@ -65,8 +67,9 @@ void _add_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_half_register_by_name('A', result);
 
-  write_flags(0, 0, is_4bit_carry(accumulator, result, 0),
-              is_8bit_carry(accumulator, result, 0));
+  write_flags(0, 0,
+              is_4bit_carry(accumulator, operand, should_carry && carry, 0),
+              is_8bit_carry(accumulator, operand, should_carry & carry, 0));
 
   *cpu_cycles = 2;
   *number_of_bytes = 2;
@@ -129,8 +132,8 @@ void cp_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
   uint8_t operand = read_half_register(register_index);
   uint8_t result = accumulator - operand;
 
-  write_flags(result == 0, 1, is_4bit_carry(accumulator, result, 1),
-              is_8bit_carry(accumulator, result, 1));
+  write_flags(result == 0, 1, is_4bit_carry(accumulator, operand, 0, 1),
+              is_8bit_carry(accumulator, operand, 0, 1));
 
   *cpu_cycles = 1;
   *number_of_bytes = 1;
@@ -145,8 +148,8 @@ void cp_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
   uint8_t *operand = read_address(address);
   uint8_t result = accumulator - *operand;
 
-  write_flags(result == 0, 1, is_4bit_carry(accumulator, result, 1),
-              is_8bit_carry(accumulator, result, 1));
+  write_flags(result == 0, 1, is_4bit_carry(accumulator, *operand, 0, 1),
+              is_8bit_carry(accumulator, *operand, 0, 1));
 
   *cpu_cycles = 2;
   *number_of_bytes = 1;
@@ -158,8 +161,8 @@ void cp_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
   uint8_t operand = *(instruction + 1);
   uint8_t result = accumulator - operand;
 
-  write_flags(result == 0, 1, is_4bit_carry(accumulator, result, 1),
-              is_8bit_carry(accumulator, result, 1));
+  write_flags(result == 0, 1, is_4bit_carry(accumulator, operand, 0, 1),
+              is_8bit_carry(accumulator, operand, 0, 1));
 
   *cpu_cycles = 2;
   *number_of_bytes = 2;
@@ -174,7 +177,7 @@ void dec_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_half_register(register_index, result);
 
-  write_flags(result == 0, 1, is_4bit_carry(value, result, 1), read_flag('C'));
+  write_flags(result == 0, 1, is_4bit_carry(value, 1, 0, 1), read_flag('C'));
 
   *cpu_cycles = 1;
   *number_of_bytes = 1;
@@ -190,7 +193,7 @@ void dec_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_address(address, result);
 
-  write_flags(result == 0, 1, is_4bit_carry(*value, result, 1), read_flag('C'));
+  write_flags(result == 0, 1, is_4bit_carry(*value, 1, 0, 1), read_flag('C'));
 
   *cpu_cycles = 3;
   *number_of_bytes = 1;
@@ -218,7 +221,7 @@ void inc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_half_register(register_index, result);
 
-  write_flags(result == 0, 1, is_4bit_carry(value, result, 1), read_flag('C'));
+  write_flags(result == 0, 1, is_4bit_carry(value, 1, 0, 0), read_flag('C'));
 
   *cpu_cycles = 1;
   *number_of_bytes = 1;
@@ -234,7 +237,7 @@ void inc_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_address(address, result);
 
-  write_flags(result == 0, 1, is_4bit_carry(*value, result, 1), read_flag('C'));
+  write_flags(result == 0, 1, is_4bit_carry(*value, 1, 0, 0), read_flag('C'));
 
   *cpu_cycles = 3;
   *number_of_bytes = 1;
@@ -267,8 +270,11 @@ void _sub_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
     result -= carry;
   }
 
-  write_flags(result == 0, 1, is_4bit_carry(accumulator, result, 1),
-              is_8bit_carry(accumulator, result, 1));
+  write_half_register_by_name('A', result);
+
+  write_flags(result == 0, 1,
+              is_4bit_carry(accumulator, operand, should_carry & carry, 1),
+              is_8bit_carry(accumulator, operand, should_carry & carry, 1));
 
   *cpu_cycles = 1;
   *number_of_bytes = 1;
@@ -290,8 +296,9 @@ void _sub_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_half_register_by_name('A', result);
 
-  write_flags(result == 0, 1, is_4bit_carry(accumulator, result, 1),
-              is_8bit_carry(accumulator, result, 1));
+  write_flags(result == 0, 1,
+              is_4bit_carry(accumulator, *operand, should_carry & carry, 1),
+              is_8bit_carry(accumulator, *operand, should_carry & carry, 1));
 
   *cpu_cycles = 2;
   *number_of_bytes = 1;
@@ -304,14 +311,16 @@ void _sub_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
   uint8_t carry = read_flag('C');
 
   uint8_t result = accumulator - operand;
+
   if (should_carry) {
     result -= carry;
   }
 
   write_half_register_by_name('A', result);
 
-  write_flags(result == 0, 1, is_4bit_carry(accumulator, result, 1),
-              is_8bit_carry(accumulator, result, 1));
+  write_flags(result == 0, 1,
+              is_4bit_carry(accumulator, operand, should_carry & carry, 1),
+              is_8bit_carry(accumulator, operand, should_carry & carry, 1));
 
   *cpu_cycles = 2;
   *number_of_bytes = 2;
@@ -319,7 +328,7 @@ void _sub_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void sbc_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
-  _sub_A_n8(instruction, cpu_cycles, number_of_bytes, 1);
+  _sub_A_r8(instruction, cpu_cycles, number_of_bytes, 1);
 }
 
 void sbc_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
@@ -334,7 +343,7 @@ void sbc_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void sub_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
-  _sub_A_n8(instruction, cpu_cycles, number_of_bytes, 0);
+  _sub_A_r8(instruction, cpu_cycles, number_of_bytes, 0);
 }
 
 void sub_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,

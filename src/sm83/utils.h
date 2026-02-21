@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-bool is_4bit_carry(uint8_t old_value, uint8_t new_value, bool subtraction);
-bool is_8bit_carry(uint8_t old_value, uint8_t new_value, bool subtraction);
+bool is_4bit_carry(uint8_t value, uint8_t operand, uint8_t carry, bool subtraction);
+bool is_8bit_carry(uint8_t value, uint8_t operand, uint8_t carry, bool subtraction);
 bool is_12bit_carry(uint16_t old_value, uint16_t new_value, bool subtraction);
 bool is_16bit_carry(uint16_t old_value, uint16_t new_value, bool subtraction);
 

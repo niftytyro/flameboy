@@ -18,8 +18,8 @@ void add_SP_e8(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_register_by_name("SP", result / 0x100, result % 0x100);
 
-  write_flags(0, 0, is_4bit_carry(value, result, 0),
-              is_8bit_carry(value, result, 0));
+  write_flags(0, 0, is_4bit_carry(value, e8, 0, e8 < 0),
+              is_8bit_carry(value, e8, 0, e8 < 0));
 
   *cpu_cycles = 4;
   *number_of_bytes = 2;
@@ -82,12 +82,12 @@ void ld_HL_SPe8(uint8_t *instruction, uint8_t *cpu_cycles,
   uint16_t value = read_register_by_name("SP");
   uint16_t new_value = value + e8;
 
-  write_register_by_name("SP", value / 0x100, value % 0x100);
+  write_register_by_name("SP", new_value / 0x100, new_value % 0x100);
 
-  write_register_by_name("HL", value / 0x100, value % 0x100);
+  write_register_by_name("HL", new_value / 0x100, new_value % 0x100);
 
-  write_flags(0, 0, is_4bit_carry(value, new_value, e8 < 0),
-              is_8bit_carry(value, new_value, e8 < 0));
+  write_flags(0, 0, is_4bit_carry(value, e8, 0, e8 < 0),
+              is_8bit_carry(value, e8, 0, e8 < 0));
 
   *cpu_cycles = 3;
   *number_of_bytes = 2;

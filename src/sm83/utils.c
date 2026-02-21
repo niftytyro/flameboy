@@ -4,21 +4,32 @@
 
 #include "registers.h"
 
-bool is_4bit_carry(uint8_t old_value, uint8_t new_value, bool subtraction) {
-  // TODO confirm if this will always work
+bool is_4bit_carry(uint8_t value, uint8_t operand, uint8_t carry,
+                   bool subtraction) {
+  if (carry == 0 && operand == 0) {
+    return 0;
+  }
   if (subtraction) {
-    return (new_value & 0xf) > (old_value & 0xf);
+    uint8_t result = value - (operand + carry);
+    return (result & 0xf) >= (value & 0xf);
   }
 
-  return (new_value & 0xf) < (old_value & 0xf);
+  uint8_t result = value + operand + carry;
+  return (result & 0xf) <= (value & 0xf);
 }
 
-bool is_8bit_carry(uint8_t old_value, uint8_t new_value, bool subtraction) {
+bool is_8bit_carry(uint8_t value, uint8_t operand, uint8_t carry,
+                   bool subtraction) {
+  if (carry == 0 && operand == 0) {
+    return 0;
+  }
   if (subtraction) {
-    return new_value > old_value;
+    uint8_t result = value - (operand + carry);
+    return (result >= value);
   }
 
-  return new_value < old_value;
+  uint8_t result = value + operand + carry;
+  return (result <= value);
 }
 
 bool is_12bit_carry(uint16_t old_value, uint16_t new_value, bool subtraction) {
@@ -51,14 +62,13 @@ int extract_half_register_index_for_grouped_ins(int instruction) {
 int extract_register_index(uint8_t instruction, uint8_t base) {
   uint8_t high = instruction / 0x10;
 
-  int i = high ;
+  int i = high;
   if (base != 0) {
     i = high % base;
   }
 
-  i*=2;
-  i+=BASE_REGISTER_INDEX;
-
+  i *= 2;
+  i += BASE_REGISTER_INDEX;
 
   return i;
 }
