@@ -22,12 +22,28 @@ void boot_cpu() {
 
 void print_cpu_state() {
   printf("------------------CPU State------------------\n");
-  printf("AF: 0x%04x\n", read_register_by_name("AF"));
+  printf("A:  0x%02x\n", read_half_register_by_name('A'));
   printf("BC: 0x%04x\n", read_register_by_name("BC"));
   printf("DE: 0x%04x\n", read_register_by_name("DE"));
   printf("HL: 0x%04x\n", read_register_by_name("HL"));
   printf("SP: 0x%04x\n", read_register_by_name("SP"));
   printf("PC: 0x%04x\n", read_register_by_name("PC"));
+
+  uint8_t flags = read_half_register_by_name('F') >> 4;
+  printf("Flags: ");
+  if ((flags & 0x8) > 0) {
+    printf("%s", "Z ");
+  }
+  if ((flags & 0x4) > 0) {
+    printf("%s", "N ");
+  }
+  if ((flags & 0x2) > 0) {
+    printf("%s", "H ");
+  }
+  if ((flags & 0x1) > 0) {
+    printf("%s", "C ");
+  }
+  printf("\n");
 }
 
 void execute_cb_prefixed_instructions(uint8_t *instruction, uint8_t *cpu_cycles,
@@ -151,6 +167,8 @@ int execute() {
 
   int high = *instruction / 0x10;
   int low = *instruction % 0x10;
+
+  printf("Executing %02x\n", *instruction);
 
   // CPU_CYCLES, NUMBER_OF_BYTES
   uint8_t instruction_metadata[2] = {1, 1};
