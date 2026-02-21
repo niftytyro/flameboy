@@ -165,6 +165,7 @@ int execute() {
     }
     if (low == 0x7) {
       rlca(instruction, cpu_cycles, number_of_bytes);
+      break;
     }
     if (low == 0x8) {
       ld_n16a_SP(instruction, cpu_cycles, number_of_bytes);

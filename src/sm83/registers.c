@@ -25,21 +25,22 @@ uint8_t write_flags(bool z, bool n, bool h, bool c) {
 
 uint8_t read_flag(char name) {
   uint8_t flags = read_half_register_by_name('F');
+  uint8_t flag;
 
-  if (name == 'z') {
-    return flags & 0x80;
+  if (name == 'Z') {
+    flag = flags & 0x80;
   }
-  if (name == 'n') {
-    return flags & 0x40;
+  if (name == 'N') {
+    flag = flags & 0x40;
   }
-  if (name == 'h') {
-    return flags & 0x20;
+  if (name == 'H') {
+    flag = flags & 0x20;
   }
-  if (name == 'c') {
-    return flags & 0x10;
+  if (name == 'C') {
+    flag = flags & 0x10;
   }
 
-  return -1;
+  return flag >> 4;
 }
 
 int get_register_index(char name) {

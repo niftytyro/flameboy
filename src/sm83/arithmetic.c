@@ -56,7 +56,7 @@ void _add_A_n8(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes, bool should_carry) {
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t operand = *(instruction + 1);
-  uint8_t carry = read_half_register_by_name('C');
+  uint8_t carry = read_flag('C');
 
   uint8_t result = accumulator + operand;
   if (should_carry) {
