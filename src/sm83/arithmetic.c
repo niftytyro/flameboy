@@ -186,7 +186,7 @@ void dec_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void dec_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
   uint8_t result = *value - 1;
@@ -221,7 +221,7 @@ void inc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 
   write_half_register(register_index, result);
 
-  write_flags(result == 0, 1, is_4bit_carry(value, 1, 0, 0), read_flag('C'));
+  write_flags(result == 0, 0, is_4bit_carry(value, 1, 0, 0), read_flag('C'));
 
   *cpu_cycles = 1;
   *number_of_bytes = 1;
@@ -230,14 +230,14 @@ void inc_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void inc_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
   uint8_t result = *value + 1;
 
   write_address(address, result);
 
-  write_flags(result == 0, 1, is_4bit_carry(*value, 1, 0, 0), read_flag('C'));
+  write_flags(result == 0, 0, is_4bit_carry(*value, 1, 0, 0), read_flag('C'));
 
   *cpu_cycles = 3;
   *number_of_bytes = 1;

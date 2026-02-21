@@ -98,7 +98,7 @@ int extract_register_index_r8(uint8_t instruction, uint8_t base) {
   i *= 2;
   i += BASE_REGISTER_INDEX;
 
-  if (low == 0xe) {
+  if (low > 0x7) {
     i++;
   }
 

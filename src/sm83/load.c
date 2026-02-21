@@ -37,7 +37,7 @@ void ld_r8_n8(uint8_t *instruction, uint8_t *cpu_cycles,
 
 void ld_r16_n16(uint8_t *instruction, uint8_t *cpu_cycles,
                 uint8_t *number_of_bytes) {
-  int register_index = extract_register_index_r8(*instruction, 0);
+  int register_index = extract_register_index(*instruction, 0);
   uint8_t byte1 = *(instruction + 2), byte2 = *(instruction + 1);
 
   write_register(register_index, byte1, byte2);

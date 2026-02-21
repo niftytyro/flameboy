@@ -329,7 +329,7 @@ void sla_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void sla_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
   uint8_t bit_7 = *value & 0x80;
@@ -363,7 +363,7 @@ void sra_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void sra_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
   uint8_t bit_7 = *value & 0x80;
@@ -397,7 +397,7 @@ void srl_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void srl_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
              uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
   uint8_t bit_0 = *value & 0x01;
@@ -432,7 +432,7 @@ void swap_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void swap_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t *value = read_address(address);
   uint8_t high_v = (*value & 0xf0) >> 4;

@@ -25,7 +25,7 @@ void and_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void and_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t *operand = read_address(address);
@@ -82,7 +82,7 @@ void or_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void or_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
               uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t *operand = read_address(address);
@@ -127,7 +127,7 @@ void xor_A_r8(uint8_t *instruction, uint8_t *cpu_cycles,
 void xor_A_HLa(uint8_t *instruction, uint8_t *cpu_cycles,
                uint8_t *number_of_bytes) {
   UNUSED(instruction);
-  uint8_t address = read_register_by_name("HL");
+  uint16_t address = read_register_by_name("HL");
 
   uint8_t accumulator = read_half_register_by_name('A');
   uint8_t *operand = read_address(address);
